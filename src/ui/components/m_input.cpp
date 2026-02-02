@@ -3,32 +3,31 @@
 
 MaterialInput::MaterialInput(QWidget *parent)
     : QLineEdit(parent), line_progress_(0.0) {
-  // 1. 去掉原生边框，设置背景透明（方便我们在paintEvent里自己画）
+  // 去掉原生边框，设置背景透明
   setStyleSheet("QLineEdit { border: none; background: transparent; "
                 "selection-background-color: #4285F4; }");
 
-  // 设置字体和高度
   setFont(QFont("Microsoft YaHei", 10));
   setFixedHeight(40); // 留出足够的高度画底部线条
 
-  accent_color_ = QColor{"$4285F4"};
+  accent_color_ = QColor{"#4285F4"};
   line_animation_ = new QPropertyAnimation(this, "lineProgress");
   line_animation_->setDuration(300);
   line_animation_->setEasingCurve(QEasingCurve::OutCurve);
 }
 
 void MaterialInput::paintEvent(QPaintEvent *event) {
-  // 1. 先让 Qt 帮我们把文字、光标画好 (混合架构的核心)
+  // 先绘制原生输入框
   QLineEdit::paintEvent(event);
 
   QPainter painter(this);
-  // 2. 绘制底部的灰色背景线 (未激活状态)
-  painter.setPen(QPen(QColor("#E0E0E0"), 1));
+  // 绘制底部的灰色背景线
+  painter.setPen(QPen{QColor{"#E0E0E0"}, 1});
   painter.drawLine(0, height() - 1, width(), height() - 1);
 
-  // 3. 绘制中间向两边扩散的蓝色激活线
+  // 绘制中间向两边扩散的蓝色激活线
   if (line_progress_ > 0.0) {
-    painter.setPen(QPen(accent_color_, 2)); // 激活时线宽为2
+    painter.setPen(QPen{accent_color_, 2}); // 激活时线宽为2
 
     int center = width() / 2;
     int halfWidth = (width() * line_progress_) / 2;

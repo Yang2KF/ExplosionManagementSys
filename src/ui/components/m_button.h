@@ -10,6 +10,7 @@ class MaterialButton : public QPushButton {
       QColor backgroundColor READ background_color WRITE set_background_color)
 public:
   explicit MaterialButton(const QString &text, QWidget *parent = nullptr);
+  explicit MaterialButton(QWidget *parent = nullptr);
   void set_theme_color(const QColor &color);
 
 protected:

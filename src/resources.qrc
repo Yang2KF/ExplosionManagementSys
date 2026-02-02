@@ -1,0 +1,27 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/icons">
+        <file alias="close_icon">../images/close-line.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="min_icon">../images/subtract-line.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="fullscreen_icon">../images/fullscreen-line.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="home_icon">../images/home-line.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="information_icon">../images/information-line.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="settings_icon">../images/settings-line.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="function_icon">../images/function-line.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="user_icon">../images/user-line.svg</file>
+    </qresource>
+</RCC>
