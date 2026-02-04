@@ -16,7 +16,7 @@ public:
 
 private slots:
   // 处理导航跳转
-  void onNavBtnClicked(int id);
+  void onSiderBtnClicked(int id);
 
 private:
   void init_ui();
@@ -26,11 +26,9 @@ private:
 
   // UI 组件
   QHBoxLayout *main_layout_;    // 全局水平布局
-  QVBoxLayout *sidebar_layout_; // 左侧垂直布局
   QVBoxLayout *content_layout_; // 右侧垂直布局 (包含 Header + Stack)
 
-  QStackedWidget *pages_stack_; // 扑克牌堆栈，用于切换页面
-  QButtonGroup *nav_group_;     // 按钮组，实现“单选”效果
+  QStackedWidget *pages_stack_;
 
   // 状态
   bool is_logged_;

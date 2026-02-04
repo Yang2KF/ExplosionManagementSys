@@ -2,10 +2,10 @@
 #include "components/function_page.h"
 #include "components/home_page.h"
 #include "components/information_page.h"
-#include "components/m_button.h"
+#include "components/login_dialog.h"
 #include "components/setting_page.h"
+#include "components/sider_bar.h"
 #include "components/title_bar.h"
-#include "components/ui_system.h"
 #include <QApplication>
 #include <QDebug>
 #include <QLineEdit>
@@ -28,7 +28,6 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 void MainWindow::init_ui() {
-  // 1. 基础布局结构
   this->setStyleSheet("background-color: #c00303;"); // 纯白背景
 
   // 全局左右分栏
@@ -36,68 +35,29 @@ void MainWindow::init_ui() {
   main_layout_->setContentsMargins(0, 0, 0, 0); // 无边距，贴边
   main_layout_->setSpacing(0);
 
-  // 左侧 Sidebar 容器
-  QWidget *sidebar_widget = new QWidget(this);
-  sidebar_widget->setFixedWidth(80); // 侧边栏固定宽度
-  sidebar_widget->setStyleSheet(
-      "background-color: #F5F6F7; border-right: 1px solid #E0E0E0;");
-  sidebar_layout_ = new QVBoxLayout(sidebar_widget);
-  sidebar_layout_->setContentsMargins(10, 20, 10, 20); // 上下留白
-  sidebar_layout_->setSpacing(15);
+  setup_sidebar();
 
-  // 右侧 Content 容器
+  // Content 容器
   QWidget *content_widget = new QWidget(this);
   content_layout_ = new QVBoxLayout(content_widget);
   content_layout_->setContentsMargins(0, 0, 0, 0); // 内容区留白
   content_layout_->setSpacing(0);
 
-  // 将左右容器加入主布局
-  main_layout_->addWidget(sidebar_widget);
   main_layout_->addWidget(content_widget);
 
-  // 2. 填充内容
-  setup_sidebar();
   setup_header();
   setup_content();
 }
 
 void MainWindow::setup_sidebar() {
-  nav_group_ = new QButtonGroup(this);
-  nav_group_->setExclusive(true); // 确保只有一个按钮被选中
+  SiderBar *sider_bar = new SiderBar();
+  sider_bar->setFixedWidth(80);
+  sider_bar->setStyleSheet(
+      "background-color: #F5F6F7; border-right: 1px solid #E0E0E0;");
+  main_layout_->addWidget(sider_bar);
 
-  struct NavInfo {
-    int id;
-    QIcon icon;
-    QString tool_tip;
-  };
-
-  QList<NavInfo> nav_lists{
-      {0, UISystem::instance()->user_icon(), "user"},
-      {1, UISystem::instance()->home_icon(), "home"},
-      {2, UISystem::instance()->function_icon(), "function"},
-      {3, UISystem::instance()->settings_icon(), "settings"},
-      {4, UISystem::instance()->information_icon(), "information"}};
-
-  for (const auto &nav_btn : nav_lists) {
-    MaterialButton *btn = new MaterialButton(this);
-    btn->setFixedSize(50, 50);
-    btn->setIcon(nav_btn.icon);
-    btn->setIconSize(QSize{35, 35});
-    btn->setCheckable(true);
-
-    nav_group_->addButton(btn, nav_btn.id);
-    sidebar_layout_->addWidget(btn);
-
-    if (nav_btn.id == 0)
-      sidebar_layout_->addSpacing(20); // 用户下稍微加点距离
-  }
-
-  // 连接导航组信号
-  // 注意：Qt6中 QButtonGroup::buttonClicked(int) 已过时，用 idClicked
-  connect(nav_group_, &QButtonGroup::idClicked, this,
-          &MainWindow::onNavBtnClicked);
-
-  sidebar_layout_->addStretch();
+  connect(sider_bar, &SiderBar::onSiderBtnRequest, this,
+          &MainWindow::onSiderBtnClicked);
 }
 
 void MainWindow::setup_header() {
@@ -139,10 +99,19 @@ void MainWindow::setup_content() {
   content_layout_->addWidget(pages_stack_);
 }
 
-// --- 逻辑处理 ---
-
-void MainWindow::onNavBtnClicked(int id) {
+void MainWindow::onSiderBtnClicked(int id) {
   // 切换右侧堆栈页面
-  pages_stack_->setCurrentIndex(id);
-  // 改变按钮颜色
+  if (id == 0) {
+    if (is_logged_) {
+      // 如果已登录，显示个人信息
+      qDebug() << "Show User Profile";
+    } else {
+      // 如果未登录，弹出登录框
+      LoginDialog loginDlg(this);
+      if (loginDlg.exec() == QDialog::Accepted) {
+        is_logged_ = true;
+      }
+    }
+  } else
+    pages_stack_->setCurrentIndex(id - 1);
 }
