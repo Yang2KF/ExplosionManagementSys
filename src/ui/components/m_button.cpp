@@ -22,6 +22,7 @@ MaterialButton::MaterialButton(QWidget *parent) : QPushButton(parent) {
   hover_color_ = base_color_.lighter(110);
   pressed_color_ = base_color_.darker(110);
   current_color_ = base_color_;
+  setCursor(Qt::PointingHandCursor);
 
   setMinimumSize(100, 40);
 

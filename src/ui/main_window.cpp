@@ -1,19 +1,23 @@
 #include "main_window.h"
-#include "login_dialog.h"
+#include "components/function_page.h"
+#include "components/home_page.h"
+#include "components/information_page.h"
+#include "components/m_button.h"
+#include "components/setting_page.h"
+#include "components/title_bar.h"
+#include "components/ui_system.h"
 #include <QApplication>
 #include <QDebug>
+#include <QLineEdit>
 #include <QToolButton>
 
 #ifdef Q_OS_WIN
 #include <dwmapi.h>
 #include <windows.h>
 #include <windowsx.h>
-#pragma comment(lib, "dwmapi.lib")
-#pragma comment(lib, "user32.lib")
 #endif
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), is_logged_(false) {
+MainWindow::MainWindow(QWidget *parent) : QWidget(parent), is_logged_(false) {
 
   setWindowFlags(Qt::FramelessWindowHint | Qt::Window);
 
@@ -26,10 +30,12 @@ MainWindow::MainWindow(QWidget *parent)
 
   // 默认显示 "Home" 页
   pages_stack_->setCurrentIndex(0);
+
+  this->dumpObjectTree(); // debug
 }
 
 void MainWindow::showEvent(QShowEvent *event) {
-  QMainWindow::showEvent(event);
+  QWidget::showEvent(event);
 
 #ifdef Q_OS_WIN
   HWND hwnd = (HWND)winId();
@@ -102,38 +108,36 @@ bool MainWindow::nativeEvent(const QByteArray &eventType, void *message,
   }
   }
 #endif
-  return QMainWindow::nativeEvent(eventType, message, result);
+  return QWidget::nativeEvent(eventType, message, result);
 }
 
 void MainWindow::init_ui() {
   // 1. 基础布局结构
-  central_widget_ = new QWidget(this);
-  setCentralWidget(central_widget_);
-  central_widget_->setStyleSheet("background-color: #FFFFFF;"); // 纯白背景
+  this->setStyleSheet("background-color: #c00303;"); // 纯白背景
 
   // 全局左右分栏
-  main_layout_ = new QHBoxLayout(central_widget_);
+  main_layout_ = new QHBoxLayout(this);
   main_layout_->setContentsMargins(0, 0, 0, 0); // 无边距，贴边
   main_layout_->setSpacing(0);
 
   // 左侧 Sidebar 容器
-  QWidget *sidebarContainer = new QWidget(this);
-  sidebarContainer->setFixedWidth(80); // 侧边栏固定宽度
-  sidebarContainer->setStyleSheet(
+  QWidget *sidebar_widget = new QWidget(this);
+  sidebar_widget->setFixedWidth(80); // 侧边栏固定宽度
+  sidebar_widget->setStyleSheet(
       "background-color: #F5F6F7; border-right: 1px solid #E0E0E0;");
-  sidebar_layout_ = new QVBoxLayout(sidebarContainer);
+  sidebar_layout_ = new QVBoxLayout(sidebar_widget);
   sidebar_layout_->setContentsMargins(10, 20, 10, 20); // 上下留白
   sidebar_layout_->setSpacing(15);
 
   // 右侧 Content 容器
-  QWidget *contentContainer = new QWidget(this);
-  content_layout_ = new QVBoxLayout(contentContainer);
-  content_layout_->setContentsMargins(20, 20, 20, 20); // 内容区留白
-  content_layout_->setSpacing(20);
+  QWidget *content_widget = new QWidget(this);
+  content_layout_ = new QVBoxLayout(content_widget);
+  content_layout_->setContentsMargins(0, 0, 0, 0); // 内容区留白
+  content_layout_->setSpacing(0);
 
   // 将左右容器加入主布局
-  main_layout_->addWidget(sidebarContainer);
-  main_layout_->addWidget(contentContainer);
+  main_layout_->addWidget(sidebar_widget);
+  main_layout_->addWidget(content_widget);
 
   // 2. 填充内容
   setup_sidebar();
@@ -145,178 +149,66 @@ void MainWindow::setup_sidebar() {
   nav_group_ = new QButtonGroup(this);
   nav_group_->setExclusive(true); // 确保只有一个按钮被选中
 
-  // --- 用户按钮 (最上面) ---
-  // 这个按钮不属于导航组，点击它有特殊逻辑
-  user_btn_ = new MaterialButton(this);
-  user_btn_->setFixedSize(50, 50);
-  user_btn_->set_theme_color(QColor("#D3E3FD")); // 未登录是灰色
-  user_btn_->setIcon(QIcon{":/icons/user_icon"});
-  user_btn_->setIconSize(QSize{35, 35});
-  connect(user_btn_, &QPushButton::clicked, this,
-          &MainWindow::onUserBtnClicked);
+  struct NavInfo {
+    int id;
+    QIcon icon;
+    QString tool_tip;
+  };
 
-  sidebar_layout_->addWidget(user_btn_);
-  sidebar_layout_->addSpacing(20); // 分隔线距离
+  QList<NavInfo> nav_lists{
+      {0, UISystem::instance()->user_icon(), "user"},
+      {1, UISystem::instance()->home_icon(), "home"},
+      {2, UISystem::instance()->function_icon(), "function"},
+      {3, UISystem::instance()->settings_icon(), "settings"},
+      {4, UISystem::instance()->information_icon(), "information"}};
 
-  // home
-  // ID对应 m_pagesStack 的索引：0=Home, 1=Grid, 2=Settings
-  MaterialButton *home_btn = create_navbtn(QIcon{":/icons/home_icon"}, 0);
-  MaterialButton *btn_func = create_navbtn(QIcon{":/icons/function_icon"}, 1);
+  for (const auto &nav_btn : nav_lists) {
+    MaterialButton *btn = new MaterialButton(this);
+    btn->setFixedSize(50, 50);
+    btn->setIcon(nav_btn.icon);
+    btn->setIconSize(QSize{35, 35});
+    btn->setCheckable(true);
 
-  // --- 底部按钮 ---
-  MaterialButton *settings_btn =
-      create_navbtn(QIcon{":/icons/settings_icon"}, 2); // Setting
-  MaterialButton *help_btn =
-      create_navbtn(QIcon{":/icons/information_icon"}, 3); // Help
+    nav_group_->addButton(btn, nav_btn.id);
+    sidebar_layout_->addWidget(btn);
+
+    if (nav_btn.id == 0)
+      sidebar_layout_->addSpacing(20); // 用户下稍微加点距离
+  }
 
   // 连接导航组信号
   // 注意：Qt6中 QButtonGroup::buttonClicked(int) 已过时，用 idClicked
   connect(nav_group_, &QButtonGroup::idClicked, this,
           &MainWindow::onNavBtnClicked);
 
-  // 弹簧撑开，把下面的按钮顶到底部
   sidebar_layout_->addStretch();
 }
 
-MaterialButton *MainWindow::create_navbtn(const QIcon &path, int id) {
-  MaterialButton *btn = new MaterialButton(this);
-  btn->setFixedSize(50, 50);
-  btn->setIcon(path);
-  btn->setIconSize(QSize{35, 35});
-  btn->setCheckable(true); // 允许选中状态
-  btn->set_theme_color(QColor("#D3E3FD"));
-
-  nav_group_->addButton(btn, id);
-  sidebar_layout_->addWidget(btn);
-  return btn;
-}
-
 void MainWindow::setup_header() {
-  // 对应设计图右上角的 "TITLE    Search   - [] X"
-  QHBoxLayout *headerLayout = new QHBoxLayout();
-  // headerLayout->setContentsMargins(0, 0, 10, 0); // 右侧留点边距
-  headerLayout->setSpacing(7);
+  TitleBar *title_bar = new TitleBar(this);
+  // title_bar->setStyleSheet("background-color: #ead5d5"); // debug
+  content_layout_->addWidget(title_bar);
 
-  QLabel *title = new QLabel("爆炸毁伤算法管理系统", this);
-  title->setFont(QFont("Microsoft YaHei", 15, QFont::Bold));
-  title->setStyleSheet("color: #333;");
-
-  // 简易搜索框 (复用我们的 MaterialInput)
-  // 实际需要引入 MaterialInput 头文件，这里先用 QWidget 占位演示布局
-  QLineEdit *searchBar = new QLineEdit(this);
-  searchBar->setPlaceholderText("搜索内容...");
-  searchBar->setStyleSheet("border: 1px solid #DDD; border-radius: 4px; "
-                           "padding: 4px; background: #F0F2F5;");
-  searchBar->setFixedWidth(200);
-
-  headerLayout->addWidget(title);
-  headerLayout->addStretch(); // 弹簧
-  headerLayout->addWidget(searchBar);
-
-  // 最小化
-  QToolButton *min_btn = new QToolButton(this);
-  min_btn->setFixedSize(30, 30);
-  min_btn->setIcon(QIcon{":/icons/min_icon"});
-  min_btn->setIconSize(QSize{25, 25});
-  min_btn->setStyleSheet("QToolButton { border: none; background: transparent;"
-                         "} QToolButton:hover { background: #E0E0E0; }");
-
-  connect(min_btn, &QToolButton::clicked, this, &MainWindow::showMinimized);
-
-  // 最大化
-  QToolButton *max_btn = new QToolButton(this);
-  max_btn->setFixedSize(30, 30);
-  max_btn->setIcon(QIcon{":/icons/fullscreen_icon"});
-
-  max_btn->setIconSize(QSize{25, 25});
-
-  max_btn->setStyleSheet("QToolButton { border: none; background: transparent;"
-                         "} QToolButton:hover { background: #E0E0E0; }");
-  connect(max_btn, &QToolButton::clicked, this, [this]() {
-    if (this->isMaximized()) {
-      this->showNormal();
-    } else {
-      this->showMaximized();
-    }
-  });
-
-  // 关闭
-  QToolButton *close_btn = new QToolButton(this);
-  close_btn->setFixedSize(30, 30);
-  close_btn->setIcon(QIcon{":/icons/close_icon"});
-
-  close_btn->setIconSize(QSize{25, 25});
-  close_btn->setStyleSheet(
-      "QToolButton { border: none; background: transparent; }"
-      "QToolButton:hover { background: #FF4D4F; }");
-
-  connect(close_btn, &QToolButton::clicked, this, &MainWindow::close);
-
-  // 加一点间距
-  headerLayout->addSpacing(20);
-  headerLayout->addWidget(min_btn);
-  headerLayout->addWidget(max_btn);
-  headerLayout->addWidget(close_btn);
-
-  content_layout_->addLayout(headerLayout);
-  content_layout_->addLayout(headerLayout);
+  connect(title_bar, &TitleBar::minClicked, this, &MainWindow::showMinimized);
+  connect(title_bar, &TitleBar::maxClicked, this,
+          [this]() { isMaximized() ? showNormal() : showMaximized(); });
+  connect(title_bar, &TitleBar::closeClicked, this, &MainWindow::close);
 }
 
 void MainWindow::setup_content() {
   pages_stack_ = new QStackedWidget(this);
 
-  // Page 0: Home / Dashboard
-  QLabel *pageHome = new QLabel("主界面", this);
-  pageHome->setAlignment(Qt::AlignCenter);
-  pageHome->setStyleSheet(
-      "background: white; border-radius: 8px; font-size: 24px;");
+  pages_stack_->setContentsMargins(10, 10, 10, 10);
 
-  // Page 1: Algorithm Grid
-  QLabel *pageGrid = new QLabel("算法配置", this);
-  pageGrid->setAlignment(Qt::AlignCenter);
-  pageGrid->setStyleSheet(
-      "background: white; border-radius: 8px; font-size: 24px;");
-
-  // Page 2: Settings
-  QLabel *pageSettings = new QLabel("系统设置", this);
-  pageSettings->setAlignment(Qt::AlignCenter);
-  pageSettings->setStyleSheet(
-      "background: white; border-radius: 8px; font-size: 24px;");
-
-  // Page 3: Help
-  QLabel *pageHelp = new QLabel("帮助", this);
-  pageHelp->setAlignment(Qt::AlignCenter);
-  pageHelp->setStyleSheet(
-      "background: white; border-radius: 8px; font-size: 24px;");
-
-  pages_stack_->addWidget(pageHome);     // Index 0
-  pages_stack_->addWidget(pageGrid);     // Index 1
-  pages_stack_->addWidget(pageSettings); // Index 2
-  pages_stack_->addWidget(pageHelp);     // Index 3
+  pages_stack_->addWidget(new HomePage(this));        // Index 0
+  pages_stack_->addWidget(new FunctionPage(this));    // Index 1
+  pages_stack_->addWidget(new SettingPage(this));     // Index 2
+  pages_stack_->addWidget(new InformationPage(this)); // Index 3
 
   content_layout_->addWidget(pages_stack_);
 }
 
 // --- 逻辑处理 ---
-
-void MainWindow::onUserBtnClicked() {
-  if (is_logged_) {
-    // 如果已登录，显示个人信息
-    qDebug() << "Show User Profile";
-    // 这里可以弹出一个 Tip 或者跳转到个人中心页
-  } else {
-    // 如果未登录，弹出登录框
-    LoginDialog loginDlg(this);
-    if (loginDlg.exec() == QDialog::Accepted) {
-      is_logged_ = true;
-      user_btn_->set_theme_color(QColor("#34A853")); // 登录成功变绿
-      user_btn_->setText("V");                       // 变成 Vip 或用户首字母
-
-      // 可以在这里获取 LoginDialog 里的用户名
-      // m_userName = loginDlg.getUserName();
-    }
-  }
-}
 
 void MainWindow::onNavBtnClicked(int id) {
   // 切换右侧堆栈页面

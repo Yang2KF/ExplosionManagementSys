@@ -1,7 +1,7 @@
 #pragma once
 
-#include "components/m_button.h"
-#include "components/m_input.h"
+#include "m_button.h"
+#include "m_input.h"
 #include <QDialog>
 
 class LoginDialog : public QDialog {
