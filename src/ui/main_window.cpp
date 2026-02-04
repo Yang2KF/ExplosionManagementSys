@@ -11,104 +11,16 @@
 #include <QLineEdit>
 #include <QToolButton>
 
-#ifdef Q_OS_WIN
-#include <dwmapi.h>
-#include <windows.h>
-#include <windowsx.h>
-#endif
-
-MainWindow::MainWindow(QWidget *parent) : QWidget(parent), is_logged_(false) {
-
-  setWindowFlags(Qt::FramelessWindowHint | Qt::Window);
-
-  setAttribute(Qt::WA_TranslucentBackground, false);
-  setAttribute(Qt::WA_NoSystemBackground);
+MainWindow::MainWindow(QWidget *parent)
+    : FramelessWidget(parent), is_logged_(false) {
 
   resize(1024, 768);
 
   init_ui();
-
   // 默认显示 "Home" 页
   pages_stack_->setCurrentIndex(0);
 
   this->dumpObjectTree(); // debug
-}
-
-void MainWindow::showEvent(QShowEvent *event) {
-  QWidget::showEvent(event);
-
-#ifdef Q_OS_WIN
-  HWND hwnd = (HWND)winId();
-  DWORD style = GetWindowLong(hwnd, GWL_STYLE);
-  // WS_THICKFRAME: 开启缩放边框和原生阴影
-  // WS_CAPTION: 允许系统识别标题栏，支持 Snap Layout 分屏
-  SetWindowLong(hwnd, GWL_STYLE,
-                style | WS_THICKFRAME | WS_CAPTION | WS_MAXIMIZEBOX |
-                    WS_MINIMIZEBOX);
-
-  // 开启 Win11 标准圆角
-  DWORD corner = 2;
-  DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner,
-                        sizeof(corner));
-#endif
-}
-
-bool MainWindow::nativeEvent(const QByteArray &eventType, void *message,
-                             qintptr *result) {
-#ifdef Q_OS_WIN
-  MSG *msg = static_cast<MSG *>(message);
-  switch (msg->message) {
-  case WM_NCCALCSIZE: {
-    // 告诉 Windows：客户区覆盖整个窗口，不需要画默认标题栏
-    *result = 0;
-    return true;
-  }
-  case WM_NCHITTEST: {
-    const LONG border_width = 8; // 边缘缩放感应区
-    RECT winrect;
-    GetWindowRect(msg->hwnd, &winrect);
-    long x = GET_X_LPARAM(msg->lParam);
-    long y = GET_Y_LPARAM(msg->lParam);
-
-    // DPI 适配：将鼠标物理坐标转换为逻辑判断
-    bool left = x < winrect.left + border_width;
-    bool right = x > winrect.right - border_width;
-    bool top = y < winrect.top + border_width;
-    bool bottom = y > winrect.bottom - border_width;
-
-    if (top && left)
-      *result = HTTOPLEFT;
-    else if (top && right)
-      *result = HTTOPRIGHT;
-    else if (bottom && left)
-      *result = HTBOTTOMLEFT;
-    else if (bottom && right)
-      *result = HTBOTTOMRIGHT;
-    else if (left)
-      *result = HTLEFT;
-    else if (right)
-      *result = HTRIGHT;
-    else if (top)
-      *result = HTTOP;
-    else if (bottom)
-      *result = HTBOTTOM;
-    // 标题栏判断：假设顶部 60 像素为拖拽区
-    else if (y < winrect.top + 60) {
-      // 检查是否点到了搜索框或按钮（这些需要响应点击，不能识别为拖拽）
-      // 简单处理：如果是在右侧按钮区，则返回 HTCLIENT 让 Qt 处理点击
-      if (x > winrect.right - 120) {
-        *result = HTCLIENT;
-        return false;
-      }
-      *result = HTCAPTION; // 识别为标题栏，支持拖动和双击最大化
-    } else {
-      *result = HTCLIENT;
-    }
-    return true;
-  }
-  }
-#endif
-  return QWidget::nativeEvent(eventType, message, result);
 }
 
 void MainWindow::init_ui() {
@@ -187,6 +99,7 @@ void MainWindow::setup_sidebar() {
 void MainWindow::setup_header() {
   TitleBar *title_bar = new TitleBar(this);
   // title_bar->setStyleSheet("background-color: #ead5d5"); // debug
+  set_drag_bar(title_bar);
   content_layout_->addWidget(title_bar);
 
   connect(title_bar, &TitleBar::minClicked, this, &MainWindow::showMinimized);

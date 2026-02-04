@@ -1,5 +1,6 @@
 #pragma once
 
+#include "components/frameless_widget.h"
 #include <QButtonGroup>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -7,16 +8,11 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-class MainWindow : public QWidget {
+class MainWindow : public FramelessWidget {
   Q_OBJECT
 
 public:
   explicit MainWindow(QWidget *parent = nullptr);
-
-protected:
-  bool nativeEvent(const QByteArray &eventType, void *message,
-                   qintptr *result) override;
-  void showEvent(QShowEvent *event) override;
 
 private slots:
   // 处理导航跳转
