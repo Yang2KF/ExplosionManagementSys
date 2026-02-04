@@ -27,11 +27,15 @@ void FramelessWidget::showEvent(QShowEvent *event) {
   SetWindowLong(hwnd, GWL_STYLE,
                 style | WS_THICKFRAME | WS_CAPTION | WS_MAXIMIZEBOX |
                     WS_MINIMIZEBOX);
-
+  // 开启 Win11 标准圆角
+  DWORD corner = 2;
+  DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner,
+                        sizeof(corner));
   // 刷新一下边框
   SetWindowPos(hwnd, nullptr, 0, 0, 0, 0,
                SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE | SWP_NOSIZE |
                    SWP_FRAMECHANGED);
+
 #endif
 }
 

@@ -11,6 +11,10 @@
 #include <QLineEdit>
 #include <QToolButton>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+
 MainWindow::MainWindow(QWidget *parent)
     : FramelessWidget(parent), is_logged_(false) {
 
@@ -103,8 +107,22 @@ void MainWindow::setup_header() {
   content_layout_->addWidget(title_bar);
 
   connect(title_bar, &TitleBar::minClicked, this, &MainWindow::showMinimized);
-  connect(title_bar, &TitleBar::maxClicked, this,
-          [this]() { isMaximized() ? showNormal() : showMaximized(); });
+  connect(title_bar, &TitleBar::maxClicked, this, [this]() {
+#ifdef Q_OS_WIN
+    HWND hwnd = reinterpret_cast<HWND>(winId());
+
+    // 如果当前最大化，点击恢复；否则最大化
+    WINDOWPLACEMENT wp;
+    wp.length = sizeof(WINDOWPLACEMENT);
+    GetWindowPlacement(hwnd, &wp);
+
+    if (wp.showCmd == SW_MAXIMIZE) {
+      ShowWindow(hwnd, SW_RESTORE);
+    } else {
+      ShowWindow(hwnd, SW_MAXIMIZE);
+    }
+#endif
+  });
   connect(title_bar, &TitleBar::closeClicked, this, &MainWindow::close);
 }
 

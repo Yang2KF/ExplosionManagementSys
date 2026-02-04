@@ -8,7 +8,6 @@ TitleBar::TitleBar(QWidget *parent) : QWidget(parent) { init_ui(); }
 
 void TitleBar::init_ui() {
   auto *layout = new QHBoxLayout(this);
-  // layout->setContentsMargins(10, 0, 10, 0);
   QMargins margins = layout->contentsMargins();
   qDebug() << "Left:" << margins.left() << "Top:" << margins.top()
            << "Right:" << margins.right() << "Bottom:" << margins.bottom();
@@ -17,7 +16,7 @@ void TitleBar::init_ui() {
 
   // 标题
   QLabel *title = new QLabel("爆炸毁伤算法管理系统", this);
-  title->setFont(QFont("Microsoft YaHei", 12, QFont::Bold));
+  title->setFont(QFont("Microsoft YaHei", 15, QFont::Bold));
 
   // 按钮
   auto *min_btn = create_btn(ins->min_icon());
