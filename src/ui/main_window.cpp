@@ -4,7 +4,7 @@
 #include "components/information_page.h"
 #include "components/login_dialog.h"
 #include "components/setting_page.h"
-#include "components/sider_bar.h"
+#include "components/side_bar.h"
 #include "components/title_bar.h"
 #include <QApplication>
 #include <QDebug>
@@ -50,13 +50,13 @@ void MainWindow::init_ui() {
 }
 
 void MainWindow::setup_sidebar() {
-  SiderBar *sider_bar = new SiderBar();
+  SideBar *sider_bar = new SideBar();
   sider_bar->setFixedWidth(80);
   sider_bar->setStyleSheet(
       "background-color: #F5F6F7; border-right: 1px solid #E0E0E0;");
   main_layout_->addWidget(sider_bar);
 
-  connect(sider_bar, &SiderBar::onSiderBtnRequest, this,
+  connect(sider_bar, &SideBar::onSiderBtnRequest, this,
           &MainWindow::onSiderBtnClicked);
 }
 
