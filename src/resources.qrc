@@ -1,27 +1,40 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource prefix="/icons">
-        <file alias="close_icon">../images/close-line.svg</file>
+        <file alias="close_icon_line">../images/close-line.svg</file>
     </qresource>
     <qresource prefix="/icons">
-        <file alias="min_icon">../images/subtract-line.svg</file>
+        <file alias="min_icon_line">../images/subtract-line.svg</file>
     </qresource>
     <qresource prefix="/icons">
-        <file alias="fullscreen_icon">../images/fullscreen-line.svg</file>
+        <file alias="fullscreen_icon_line">../images/fullscreen-line.svg</file>
     </qresource>
     <qresource prefix="/icons">
-        <file alias="home_icon">../images/home-line.svg</file>
+        <file alias="home_icon_line">../images/home-line.svg</file>
     </qresource>
     <qresource prefix="/icons">
-        <file alias="information_icon">../images/information-line.svg</file>
+        <file alias="information_icon_line">../images/information-line.svg</file>
     </qresource>
     <qresource prefix="/icons">
-        <file alias="settings_icon">../images/settings-line.svg</file>
+        <file alias="settings_icon_line">../images/settings-line.svg</file>
     </qresource>
     <qresource prefix="/icons">
-        <file alias="function_icon">../images/function-line.svg</file>
+        <file alias="function_icon_line">../images/function-line.svg</file>
     </qresource>
     <qresource prefix="/icons">
-        <file alias="user_icon">../images/user-line.svg</file>
+        <file alias="user_icon_line">../images/user-line.svg</file>
+    </qresource>
+    
+    <qresource prefix="/icons">
+        <file alias="home_icon_fill">../images/home-fill.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="information_icon_fill">../images/information-fill.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="settings_icon_fill">../images/settings-fill.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="function_icon_fill">../images/function-fill.svg</file>
     </qresource>
 </RCC>

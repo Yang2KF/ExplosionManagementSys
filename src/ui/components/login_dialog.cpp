@@ -36,7 +36,7 @@ LoginDialog::LoginDialog(QWidget *parent) : QDialog(parent) {
   layout->addSpacing(30);
 
   //  登录按钮
-  login_btn_ = new MaterialButton("登 录", this);
+  login_btn_ = new MaterialButton("登 录", MaterialButton::Normal, this);
   login_btn_->set_theme_color(QColor("#0B57D0"));
   layout->addWidget(login_btn_);
 

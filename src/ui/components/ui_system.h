@@ -14,14 +14,28 @@ public:
 
   QColor theme_color() const { return QColor{"#D3E3F3"}; }
 
-  QIcon home_icon() const { return QIcon{":/icons/home_icon"}; }
-  QIcon min_icon() const { return QIcon{":/icons/min_icon"}; }
-  QIcon max_icon() const { return QIcon{":/icons/fullscreen_icon"}; }
-  QIcon information_icon() const { return QIcon{":/icons/information_icon"}; }
-  QIcon settings_icon() const { return QIcon{":/icons/settings_icon"}; }
-  QIcon close_icon() const { return QIcon{":/icons/close_icon"}; }
-  QIcon user_icon() const { return QIcon{":/icons/user_icon"}; }
-  QIcon function_icon() const { return QIcon{":/icons/function_icon"}; }
+  QIcon home_icon() const { return QIcon{":/icons/home_icon_line"}; }
+  QIcon min_icon() const { return QIcon{":/icons/min_icon_line"}; }
+  QIcon max_icon() const { return QIcon{":/icons/fullscreen_icon_line"}; }
+  QIcon information_icon() const {
+    return QIcon{":/icons/information_icon_line"};
+  }
+  QIcon settings_icon() const { return QIcon{":/icons/settings_icon_line"}; }
+  QIcon close_icon() const { return QIcon{":/icons/close_icon_line"}; }
+  QIcon user_icon() const { return QIcon{":/icons/user_icon_line"}; }
+  QIcon function_icon() const { return QIcon{":/icons/function_icon_line"}; }
+
+  QIcon home_icon_checked() const { return QIcon{":/icons/home_icon_fill"}; }
+
+  QIcon function_icon_checked() const {
+    return QIcon{":/icons/function_icon_fill"};
+  }
+  QIcon information_icon_checked() const {
+    return QIcon{":/icons/information_icon_fill"};
+  }
+  QIcon settings_icon_checked() const {
+    return QIcon{":/icons/settings_icon_fill"};
+  }
 
 private:
   UISystem() = default;

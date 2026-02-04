@@ -9,9 +9,14 @@ class MaterialButton : public QPushButton {
   Q_PROPERTY(
       QColor backgroundColor READ background_color WRITE set_background_color)
 public:
-  explicit MaterialButton(const QString &text, QWidget *parent = nullptr);
-  explicit MaterialButton(QWidget *parent = nullptr);
+  enum Type { Normal, SideBar };
+  Q_ENUM(Type)
+
+  explicit MaterialButton(const QString &text, Type type,
+                          QWidget *parent = nullptr);
+  explicit MaterialButton(Type type, QWidget *parent = nullptr);
   void set_theme_color(const QColor &color);
+  void set_icons(const QIcon &normal, const QIcon &checked);
 
 protected:
   // 绘制函数
@@ -24,14 +29,26 @@ protected:
   void mouseReleaseEvent(QMouseEvent *event) override;
 
 private:
+  void init();
   // getter/setter
-  QColor background_color() const { return current_color_; }
+  QColor background_color() const { return current_bg_color_; }
   void set_background_color(const QColor &color);
+  Type type_;
 
-  QColor base_color_;
-  QColor hover_color_;
-  QColor pressed_color_;
-  QColor current_color_;
+  // 颜色配置 (待改进)
+  QColor base_color_;       // 基础色
+  QColor hover_color_;      // 悬停色
+  QColor pressed_color_;    // 按下色
+  QColor current_bg_color_; // 当前背景色（动画插值用）
 
-  QPropertyAnimation *color_animation_;
+  QColor text_color_normal_ = QColor("#1f1f1f");  // 普通文字颜色
+  QColor text_color_checked_ = QColor("#0B57D0"); // 选中文字颜色 (蓝色)
+
+  QColor icon_color_normal_ = QColor("#444746");  // 未选中图标灰
+  QColor icon_color_checked_ = QColor("#0B57D0"); // 选中图标蓝
+
+  QPropertyAnimation *color_animation_ = nullptr;
+
+  QIcon icon_normal_;
+  QIcon icon_checked_;
 };
