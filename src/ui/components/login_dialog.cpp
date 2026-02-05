@@ -4,10 +4,10 @@
 #include <QVBoxLayout>
 
 LoginDialog::LoginDialog(QWidget *parent) : QDialog(parent) {
+  this->setObjectName("LoginDialog");
   // 设置窗口属性
   setWindowTitle("系统登录");
   resize(400, 500);
-  setStyleSheet("background-color: white;"); // 纯白背景
 
   // 布局管理器
   QVBoxLayout *layout = new QVBoxLayout(this);
@@ -17,8 +17,6 @@ LoginDialog::LoginDialog(QWidget *parent) : QDialog(parent) {
   //  标题
   QLabel *titleLabel = new QLabel("爆炸毁伤\n算法管理系统", this);
   titleLabel->setAlignment(Qt::AlignCenter);
-  titleLabel->setFont(QFont("Microsoft YaHei", 16, QFont::Bold));
-  titleLabel->setStyleSheet("color: #333;");
   layout->addWidget(titleLabel);
 
   layout->addSpacing(30); // 增加一点距离

@@ -3,11 +3,7 @@
 
 MaterialInput::MaterialInput(QWidget *parent)
     : QLineEdit(parent), line_progress_(0.0) {
-  // 去掉原生边框，设置背景透明
-  setStyleSheet("QLineEdit { border: none; background: transparent; "
-                "selection-background-color: #4285F4; }");
 
-  setFont(QFont("Microsoft YaHei", 10));
   setFixedHeight(40); // 留出足够的高度画底部线条
 
   accent_color_ = QColor{"#4285F4"};

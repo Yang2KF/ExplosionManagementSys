@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 void MainWindow::init_ui() {
-  this->setStyleSheet("background-color: #c00303;"); // 纯白背景
+  this->setObjectName("MainWindow");
 
   // 全局左右分栏
   main_layout_ = new QHBoxLayout(this);
@@ -39,6 +39,7 @@ void MainWindow::init_ui() {
 
   // Content 容器
   QWidget *content_widget = new QWidget(this);
+  content_widget->setObjectName("ContentWidget");
   content_layout_ = new QVBoxLayout(content_widget);
   content_layout_->setContentsMargins(0, 0, 0, 0); // 内容区留白
   content_layout_->setSpacing(0);
@@ -51,9 +52,8 @@ void MainWindow::init_ui() {
 
 void MainWindow::setup_sidebar() {
   SideBar *sider_bar = new SideBar();
+  sider_bar->setObjectName("SideBar");
   sider_bar->setFixedWidth(80);
-  sider_bar->setStyleSheet(
-      "background-color: #F5F6F7; border-right: 1px solid #E0E0E0;");
   main_layout_->addWidget(sider_bar);
 
   connect(sider_bar, &SideBar::onSiderBtnRequest, this,

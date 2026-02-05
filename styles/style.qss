@@ -1,0 +1,62 @@
+QWidget {
+    font-family: "Microsoft YaHei";
+    font-size: 11pt;
+    color: #333333;
+    outline: none; 
+}
+
+#MainWindow {
+    background-color: #FFFFFF;
+}
+
+#ContentWidget {
+    background-color: #e23737;
+}
+
+#SideBar {
+    background-color: #F5F6F7;
+    border-right: 1px solid #E0E0E0;
+}
+
+#TitleBar {
+    background-color: transparent;
+}
+
+#TitleLabel {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #202124;
+}
+
+#TitleBar QToolButton {
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+}
+
+#TitleBar QToolButton:hover {
+    background-color: #E0E0E0;
+}
+
+#HomePage, #FunctionPage, #SettingPage, #InformationPage {
+    background-color: #51bb81;
+    border-radius: 8px;        
+}
+
+QLineEdit {
+    border: none;
+    background: transparent;
+    selection-background-color: #4285F4;
+    font-size: 14px;
+    padding: 5px;
+}
+
+QLabel {
+    font-size: 30pt;
+    font-weight: bold;
+    color: #1f1f1f;
+}
+
+#LoginDialog {
+    background-color: #FFFFFF;
+}

@@ -7,6 +7,7 @@
 TitleBar::TitleBar(QWidget *parent) : QWidget(parent) { init_ui(); }
 
 void TitleBar::init_ui() {
+  this->setObjectName("TitleBar");
   auto *layout = new QHBoxLayout(this);
   QMargins margins = layout->contentsMargins();
   qDebug() << "Left:" << margins.left() << "Top:" << margins.top()
@@ -16,7 +17,7 @@ void TitleBar::init_ui() {
 
   // 标题
   QLabel *title = new QLabel("爆炸毁伤算法管理系统", this);
-  title->setFont(QFont("Microsoft YaHei", 15, QFont::Bold));
+  title->setObjectName("TitleLabel");
 
   // 按钮
   auto *min_btn = create_btn(ins->min_icon());
@@ -29,10 +30,6 @@ void TitleBar::init_ui() {
   layout->addWidget(max_btn);
   layout->addWidget(close_btn);
 
-  // debug
-  this->setAttribute(Qt::WA_StyledBackground, true);
-  this->setStyleSheet("background-color: #321312; border-radius: 8px;");
-
   // 需转发给 main_window
   connect(min_btn, &QToolButton::clicked, this, &TitleBar::minClicked);
   connect(max_btn, &QToolButton::clicked, this, &TitleBar::maxClicked);
@@ -44,8 +41,6 @@ QToolButton *TitleBar::create_btn(const QIcon &icon) {
   btn->setFixedSize(30, 30);
   btn->setIcon(icon);
   btn->setIconSize(QSize{25, 25});
-  btn->setStyleSheet("QToolButton { border: none; background: transparent;"
-                     "} QToolButton:hover { background: #E0E0E0; }");
 
   return btn;
 }

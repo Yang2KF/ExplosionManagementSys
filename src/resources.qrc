@@ -37,4 +37,8 @@
     <qresource prefix="/icons">
         <file alias="function_icon_fill">../images/function-fill.svg</file>
     </qresource>
+
+    <qresource prefix="/styles">
+        <file alias="style">../styles/style.qss</file>
+    </qresource>
 </RCC>

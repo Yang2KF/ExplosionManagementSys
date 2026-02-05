@@ -34,7 +34,6 @@ void SideBar::init_ui() {
   for (const auto &side_btn : sider_lists) {
     MaterialButton *btn = new MaterialButton(MaterialButton::SideBar, this);
     btn->setFixedSize(50, 50);
-    btn->setIcon(side_btn.icon);
     btn->setIconSize(QSize{35, 35});
     btn->set_icons(side_btn.icon, side_btn.icon_checked);
     nav_group->addButton(btn, side_btn.id);
