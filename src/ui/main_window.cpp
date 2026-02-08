@@ -3,6 +3,7 @@
 #include "components/home_page.h"
 #include "components/information_page.h"
 #include "components/login_dialog.h"
+#include "components/mask_widget.h"
 #include "components/setting_page.h"
 #include "components/side_bar.h"
 #include "components/title_bar.h"
@@ -10,6 +11,7 @@
 #include <QDebug>
 #include <QLineEdit>
 #include <QToolButton>
+
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -23,8 +25,6 @@ MainWindow::MainWindow(QWidget *parent)
   init_ui();
   // 默认显示 "Home" 页
   pages_stack_->setCurrentIndex(0);
-
-  this->dumpObjectTree(); // debug
 }
 
 void MainWindow::init_ui() {
@@ -45,6 +45,9 @@ void MainWindow::init_ui() {
   content_layout_->setSpacing(0);
 
   main_layout_->addWidget(content_widget);
+
+  // 挂载全局遮罩
+  MaskWidget::instance(this);
 
   setup_header();
   setup_content();
