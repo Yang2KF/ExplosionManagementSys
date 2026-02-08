@@ -7,9 +7,12 @@
 class UISystem : public QObject {
   Q_OBJECT
 public:
-  static UISystem *instance() {
+  UISystem(const UISystem &) = delete;            // 禁用拷贝构造
+  UISystem &operator=(const UISystem &) = delete; // 禁用赋值操作
+
+  static UISystem &instance() {
     static UISystem instance_;
-    return &instance_;
+    return instance_;
   }
 
   QColor theme_color() const { return QColor{"#D3E3F3"}; }

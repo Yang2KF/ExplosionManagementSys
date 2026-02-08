@@ -58,7 +58,6 @@ bool FramelessWidget::nativeEvent(const QByteArray &eventType, void *message,
     int w = this->width();
     int h = this->height();
 
-    // 这里的逻辑和之前一样
     bool isTop = localPos.y() < border;
     bool isBottom = localPos.y() > h - border;
     bool isLeft = localPos.x() < border;

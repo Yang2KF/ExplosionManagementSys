@@ -13,16 +13,14 @@ void TitleBar::init_ui() {
   qDebug() << "Left:" << margins.left() << "Top:" << margins.top()
            << "Right:" << margins.right() << "Bottom:" << margins.bottom();
 
-  auto *ins = UISystem::instance();
-
   // 标题
   QLabel *title = new QLabel("爆炸毁伤算法管理系统", this);
   title->setObjectName("TitleLabel");
 
   // 按钮
-  auto *min_btn = create_btn(ins->min_icon());
-  auto *max_btn = create_btn(ins->max_icon());
-  auto *close_btn = create_btn(ins->close_icon());
+  auto *min_btn = create_btn(UISystem::instance().min_icon());
+  auto *max_btn = create_btn(UISystem::instance().max_icon());
+  auto *close_btn = create_btn(UISystem::instance().close_icon());
 
   layout->addWidget(title);
   layout->addStretch();

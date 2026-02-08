@@ -9,7 +9,7 @@ class MaterialButton : public QPushButton {
   Q_PROPERTY(
       QColor backgroundColor READ background_color WRITE set_background_color)
 public:
-  enum Type { Normal, SideBar };
+  enum Type { Normal, WithIcon };
   Q_ENUM(Type)
 
   explicit MaterialButton(const QString &text, Type type,

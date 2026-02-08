@@ -15,7 +15,7 @@ MaterialButton::MaterialButton(Type type, QWidget *parent)
 void MaterialButton::init() {
   // 1. 基础属性设置
   // 侧边栏按钮通常是 Checkable 的
-  if (type_ == SideBar) {
+  if (type_ == WithIcon) {
     setCheckable(true);
     setFixedSize(50, 50); // 默认大小，外部可以覆盖
   } else {
@@ -58,7 +58,7 @@ void MaterialButton::paintEvent(QPaintEvent *event) {
   QColor bg_color = current_bg_color_;
   int radius = 8;
 
-  if (type_ == SideBar) {
+  if (type_ == WithIcon) {
     radius = height() / 2; // 圆形或胶囊形
 
     // 侧边栏按钮的特殊背景逻辑
@@ -86,7 +86,7 @@ void MaterialButton::paintEvent(QPaintEvent *event) {
   // 2. 决定前景色（图标和文字的颜色）
   // =================================================
   QColor content_color;
-  if (type_ == SideBar) {
+  if (type_ == WithIcon) {
     content_color = isChecked() ? icon_color_checked_ : icon_color_normal_;
   } else {
     content_color = Qt::white; // 普通按钮通常是深底白字
@@ -97,7 +97,7 @@ void MaterialButton::paintEvent(QPaintEvent *event) {
   // =================================================
   // 根据状态选择对应的图标对象
   QIcon current_icon =
-      (isChecked() && type_ == SideBar) ? icon_checked_ : icon_normal_;
+      (isChecked() && type_ == WithIcon) ? icon_checked_ : icon_normal_;
 
   // 如果还没设置 icon_normal_，尝试回退到 Qt 自带的 icon() 属性
   if (current_icon.isNull())
