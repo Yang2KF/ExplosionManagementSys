@@ -1,17 +1,29 @@
-file(GLOB UI_SRCS "ui/*.cpp")
-file(GLOB UI_HEADERS "ui/*.h")
+file(GLOB_RECURSE MODEL_SRCS
+    "model/*.cpp" 
+    "db/*.cpp"
+)
+file(GLOB_RECURSE MODEL_HEADERS 
+    "model/*.h" 
+    "db/*.h"       
+    "entities/*.h"
+)
 
-set(MAIN_SOURCE main.cpp resources.qrc)
-
-add_executable(${CMAKE_PROJECT_NAME} ${MAIN_SOURCE} ${UI_SRCS} ${UI_HEADERS})
+add_library(DataLayer STATIC ${MODEL_SRCS} ${MODEL_HEADERS})
+target_link_libraries(DataLayer PUBLIC 
+    Qt6::Core 
+    Qt6::Sql
+    Qt6::Gui
+)
+target_include_directories(DataLayer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(ui/components)
 
+set(MAIN_FILES main.cpp resources.qrc ui/main_window.cpp ui/main_window.h)
+
+add_executable(${CMAKE_PROJECT_NAME} ${MAIN_FILES})
+
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
-    UIComponents  # 这是我们在第三层定义的库名
-    Qt6::Core
-    Qt6::Widgets
-    Qt6::Sql
+    UIComponents  
     Qt6::Svg
 )
 

@@ -1,63 +1,127 @@
 #include "login_dialog.h"
+#include "db/db_manager.h"
+#include "m_message_box.h"
+#include "mask_widget.h"
+#include "ui_system.h"
+#include <QGraphicsDropShadowEffect>
+#include <QHBoxLayout>
 #include <QLabel>
-#include <QMessageBox>
+#include <QSqlError>
+#include <QSqlQuery>
 #include <QVBoxLayout>
 
 LoginDialog::LoginDialog(QWidget *parent) : QDialog(parent) {
-  this->setObjectName("LoginDialog");
-  // 设置窗口属性
-  setWindowTitle("系统登录");
-  resize(400, 500);
+  setObjectName("LoginDialog");
+  setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
+  setAttribute(Qt::WA_TranslucentBackground);
+  resize(380, 450);
 
-  // 布局管理器
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->setContentsMargins(40, 40, 40, 40); // 设置四周留白
-  layout->setSpacing(20);                     // 组件间距
+  init_ui();
+}
 
-  //  标题
-  QLabel *titleLabel = new QLabel("爆炸毁伤\n算法管理系统", this);
-  titleLabel->setAlignment(Qt::AlignCenter);
-  layout->addWidget(titleLabel);
+void LoginDialog::showEvent(QShowEvent *event) {
+  if (auto mask = MaskWidget::instance()) {
+    mask->show_mask();
+  }
+  QDialog::showEvent(event);
+  raise();
+}
 
-  layout->addSpacing(30); // 增加一点距离
+void LoginDialog::done(int r) {
+  if (auto mask = MaskWidget::instance()) {
+    mask->hide_mask();
+  }
+  QDialog::done(r);
+}
 
-  //  输入框区域
+void LoginDialog::init_ui() {
+  QVBoxLayout *main_layout = new QVBoxLayout(this);
+  main_layout->setContentsMargins(10, 10, 10, 10);
+
+  QWidget *container = new QWidget(this);
+  container->setObjectName("LoginDialogContainer");
+
+  QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
+  shadow->setBlurRadius(20);
+  shadow->setColor(QColor(0, 0, 0, 60));
+  shadow->setOffset(0, 5);
+  container->setGraphicsEffect(shadow);
+
+  main_layout->addWidget(container);
+
+  QVBoxLayout *content_layout = new QVBoxLayout(container);
+  content_layout->setContentsMargins(40, 40, 40, 40);
+  content_layout->setSpacing(25);
+
+  QLabel *title_label = new QLabel("System Login", this);
+  title_label->setObjectName("LoginDialogTitle");
+  title_label->setAlignment(Qt::AlignCenter);
+  content_layout->addWidget(title_label);
+
+  QLabel *sub_title = new QLabel("Explosion Damage Algorithm Management", this);
+  sub_title->setObjectName("LoginDialogSubtitle");
+  sub_title->setAlignment(Qt::AlignCenter);
+  content_layout->addWidget(sub_title);
+
   user_edit_ = new MaterialInput(this);
-  user_edit_->setPlaceholderText("用户名");
-  layout->addWidget(user_edit_);
+  user_edit_->setPlaceholderText("Username");
+  user_edit_->setText("admin");
+  content_layout->addWidget(user_edit_);
 
   pass_edit_ = new MaterialInput(this);
-  pass_edit_->setPlaceholderText("密码");
-  pass_edit_->setEchoMode(QLineEdit::Password); // 密码模式
-  layout->addWidget(pass_edit_);
+  pass_edit_->setPlaceholderText("Password");
+  pass_edit_->setEchoMode(QLineEdit::Password);
+  pass_edit_->setText("123456");
+  content_layout->addWidget(pass_edit_);
 
-  layout->addSpacing(30);
+  connect(pass_edit_, &QLineEdit::returnPressed, this,
+          &LoginDialog::onLoginClicked);
 
-  //  登录按钮
-  login_btn_ = new MaterialButton("登 录", MaterialButton::Normal, this);
-  login_btn_->set_theme_color(QColor("#0B57D0"));
-  layout->addWidget(login_btn_);
+  content_layout->addStretch();
 
-  layout->addStretch(); // 底部弹簧，把内容顶上去
+  login_btn_ = new MaterialButton("Login", MaterialButton::Normal, this);
+  login_btn_->set_theme_color(UISystem::instance().bg_primary());
+  login_btn_->setFixedHeight(40);
+  content_layout->addWidget(login_btn_);
 
-  // 4. 连接信号
+  cancel_btn_ = new MaterialButton("Cancel", MaterialButton::Normal, this);
+  cancel_btn_->set_theme_color(UISystem::instance().neutral());
+  cancel_btn_->setFixedHeight(40);
+  content_layout->addWidget(cancel_btn_);
+
   connect(login_btn_, &QPushButton::clicked, this,
           &LoginDialog::onLoginClicked);
+  connect(cancel_btn_, &QPushButton::clicked, this, &QDialog::reject);
 }
 
 void LoginDialog::onLoginClicked() {
-  // 模拟验证逻辑 (后续我们会连接数据库)
-  QString user = user_edit_->text();
-  QString pass = user_edit_->text();
+  QString user = user_edit_->text().trimmed();
+  QString pass = pass_edit_->text().trimmed();
 
-  if (user == "admin" && pass == "123456") {
-    emit loginSuccess(); // 发射成功信号
-    accept();            // 关闭对话框并返回 QDialog::Accepted
+  if (user.isEmpty() || pass.isEmpty()) {
+    MaterialMessageBox::warning(this, "Hint",
+                                "Please enter username and password.");
+    return;
+  }
+
+  QSqlDatabase db = DBManager::instance().database();
+  QSqlQuery query(db);
+  query.prepare("SELECT role FROM users WHERE username = :u AND password = :p");
+  query.bindValue(":u", user);
+  query.bindValue(":p", pass);
+
+  if (query.exec()) {
+    if (query.next()) {
+      emit loginSuccess();
+      accept();
+    } else {
+      MaterialMessageBox::error(this, "Login Failed",
+                                "Invalid username or password.");
+      pass_edit_->clear();
+      pass_edit_->setFocus();
+    }
   } else {
-    // 原生MessageBox演示，后期需修改弹窗
-    QMessageBox::warning(this, "登录失败",
-                         "用户名或密码错误！\n(admin/123456)");
-    pass_edit_->clear();
-    pass_edit_->setFocus();
+    MaterialMessageBox::error(
+        this, "Error", "Database query failed: " + query.lastError().text());
   }
 }

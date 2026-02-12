@@ -11,14 +11,21 @@ public:
   explicit LoginDialog(QWidget *parent = nullptr);
 
 signals:
-  // 这是一个业务信号：告诉主程序“用户通过验证了”
   void loginSuccess();
+
+protected:
+  // 覆盖事件以支持遮罩
+  void showEvent(QShowEvent *event) override;
+  void done(int r) override;
 
 private slots:
   void onLoginClicked();
 
 private:
+  void init_ui();
+
   MaterialInput *user_edit_;
   MaterialInput *pass_edit_;
   MaterialButton *login_btn_;
+  MaterialButton *cancel_btn_; // 新增一个取消/关闭按钮
 };

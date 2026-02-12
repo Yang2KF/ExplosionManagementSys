@@ -10,7 +10,7 @@ set(CMAKE_AUTORCC ON)
 
 
 find_package(Qt6 REQUIRED COMPONENTS
-  Core Widgets Sql Svg
+  Core Widgets Sql Svg Gui
 )
 
 add_subdirectory(src)
