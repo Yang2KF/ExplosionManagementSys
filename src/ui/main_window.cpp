@@ -7,6 +7,7 @@
 #include "components/setting_page.h"
 #include "components/side_bar.h"
 #include "components/title_bar.h"
+#include "components/user_page.h"
 #include <QApplication>
 #include <QDebug>
 #include <QLineEdit>
@@ -23,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
 
   init_ui();
   // 默认显示 "Home" 页
-  pages_stack_->setCurrentIndex(0);
+  pages_stack_->setCurrentIndex(Page_Home);
 }
 
 void MainWindow::init_ui() {
@@ -90,27 +91,31 @@ void MainWindow::setup_content() {
 
   pages_stack_->setContentsMargins(10, 10, 10, 10);
 
-  pages_stack_->addWidget(new HomePage(this));        // Index 0
-  pages_stack_->addWidget(new FunctionPage(this));    // Index 1
-  pages_stack_->addWidget(new SettingPage(this));     // Index 2
-  pages_stack_->addWidget(new InformationPage(this)); // Index 3
+  pages_stack_->insertWidget(Page_User, new UserPage(this));
+  pages_stack_->insertWidget(Page_Home, new HomePage(this));
+  pages_stack_->insertWidget(Page_Function, new FunctionPage(this));
+  pages_stack_->insertWidget(Page_Setting, new SettingPage(this));
+  pages_stack_->insertWidget(Page_Info, new InformationPage(this));
 
   content_layout_->addWidget(pages_stack_);
 }
 
 void MainWindow::onSiderBtnClicked(int id) {
-  // 切换右侧堆栈页面
-  if (id == 0) {
-    if (is_logged_) {
-      // 如果已登录，显示个人信息
-      qDebug() << "Show User Profile";
-    } else {
-      // 如果未登录，弹出登录框
+  if (id == Page_User) {
+    if (!is_logged_) {
       LoginDialog loginDlg(this);
       if (loginDlg.exec() == QDialog::Accepted) {
         is_logged_ = true;
+        pages_stack_->setCurrentIndex(Page_User);
+      } else {
+        return;
       }
+    } else {
+      pages_stack_->setCurrentIndex(Page_User);
     }
-  } else
-    pages_stack_->setCurrentIndex(id - 1);
+  } else {
+    if (id >= 0 && id < pages_stack_->count()) {
+      pages_stack_->setCurrentIndex(id);
+    }
+  }
 }

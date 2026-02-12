@@ -19,6 +19,14 @@ private slots:
   void onSiderBtnClicked(int id);
 
 private:
+  enum PageIndex {
+    Page_User = 0,
+    Page_Home,
+    Page_Function,
+    Page_Setting,
+    Page_Info
+  };
+
   void init_ui();
   void setup_sidebar();
   void setup_header();
