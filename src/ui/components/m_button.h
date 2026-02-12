@@ -33,6 +33,7 @@ private:
   // getter/setter
   QColor background_color() const { return current_bg_color_; }
   void set_background_color(const QColor &color);
+
   Type type_;
 
   // 颜色配置 (待改进)
@@ -41,11 +42,8 @@ private:
   QColor pressed_color_;    // 按下色
   QColor current_bg_color_; // 当前背景色（动画插值用）
 
-  QColor text_color_normal_ = QColor("#1f1f1f");  // 普通文字颜色
-  QColor text_color_checked_ = QColor("#0B57D0"); // 选中文字颜色 (蓝色)
-
-  QColor icon_color_normal_ = QColor("#444746");  // 未选中图标灰
-  QColor icon_color_checked_ = QColor("#0B57D0"); // 选中图标蓝
+  QColor icon_color_normal_;
+  QColor icon_color_checked_;
 
   QPropertyAnimation *color_animation_ = nullptr;
 

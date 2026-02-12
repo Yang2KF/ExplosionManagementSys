@@ -12,7 +12,6 @@
 #include <QLineEdit>
 #include <QToolButton>
 
-
 #ifdef Q_OS_WIN
 #include <windows.h>
 #endif
@@ -28,8 +27,6 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 void MainWindow::init_ui() {
-  this->setObjectName("MainWindow");
-
   // 全局左右分栏
   main_layout_ = new QHBoxLayout(this);
   main_layout_->setContentsMargins(0, 0, 0, 0); // 无边距，贴边
@@ -38,13 +35,13 @@ void MainWindow::init_ui() {
   setup_sidebar();
 
   // Content 容器
-  QWidget *content_widget = new QWidget(this);
-  content_widget->setObjectName("ContentWidget");
-  content_layout_ = new QVBoxLayout(content_widget);
+  QWidget *content_container = new QWidget(this);
+  content_container->setObjectName("ContentContainer");
+  content_layout_ = new QVBoxLayout(content_container);
   content_layout_->setContentsMargins(0, 0, 0, 0); // 内容区留白
   content_layout_->setSpacing(0);
 
-  main_layout_->addWidget(content_widget);
+  main_layout_->addWidget(content_container);
 
   // 挂载全局遮罩
   MaskWidget::instance(this);
@@ -54,7 +51,7 @@ void MainWindow::init_ui() {
 }
 
 void MainWindow::setup_sidebar() {
-  SideBar *sider_bar = new SideBar();
+  SideBar *sider_bar = new SideBar(this);
   sider_bar->setObjectName("SideBar");
   sider_bar->setFixedWidth(80);
   main_layout_->addWidget(sider_bar);
@@ -65,7 +62,6 @@ void MainWindow::setup_sidebar() {
 
 void MainWindow::setup_header() {
   TitleBar *title_bar = new TitleBar(this);
-  // title_bar->setStyleSheet("background-color: #ead5d5"); // debug
   set_drag_bar(title_bar);
   content_layout_->addWidget(title_bar);
 

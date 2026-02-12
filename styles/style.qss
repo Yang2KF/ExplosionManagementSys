@@ -1,21 +1,17 @@
 QWidget {
     font-family: "Microsoft YaHei";
     font-size: 11pt;
-    color: #333333;
-    outline: none; 
+    color: ${TEXT_PRIMARY};
+    outline: none;
 }
 
-#MainWindow {
-    background-color: #FFFFFF;
-}
-
-#ContentWidget {
-    background-color: #e23737;
+#ContentContainer {
+    background-color: ${SURFACE};
 }
 
 #SideBar {
     background-color: #F5F6F7;
-    border-right: 1px solid #E0E0E0;
+    border-right: 1px solid ${LINE};
 }
 
 #TitleBar {
@@ -35,19 +31,121 @@ QWidget {
 }
 
 #TitleBar QToolButton:hover {
-    background-color: #E0E0E0;
+    background-color: ${LINE};
 }
 
 #HomePage, #FunctionPage, #SettingPage, #InformationPage {
-    background-color: #51bb81;
-    border-radius: 8px;        
+    background-color: ${SURFACE};
+    border-radius: 8px;
+}
+
+#MessageBoxContainer {
+    background-color: ${SURFACE};
+    border-radius: 8px;
+}
+
+QLabel#MessageBoxTitle {
+    font-size: 16px;
+    font-weight: 700;
+    color: ${TEXT_PRIMARY};
+}
+
+QLabel#MessageBoxTitle[msgType="error"] {
+    color: ${ERROR};
+}
+
+QLabel#MessageBoxTitle[msgType="warning"] {
+    color: ${WARNING};
+}
+
+QLabel#MessageBoxTitle[msgType="success"] {
+    color: ${SUCCESS};
+}
+
+QLabel#MessageBoxText {
+    font-size: 14px;
+    font-weight: 400;
+    color: ${TEXT_SECONDARY};
+}
+
+#LoginDialogContainer,
+#AlgoEditDialogContainer {
+    background-color: ${SURFACE};
+    border-radius: 12px;
+}
+
+QLabel#LoginDialogTitle {
+    font-size: 22px;
+    font-weight: 700;
+    color: ${TEXT_PRIMARY};
+}
+
+QLabel#LoginDialogSubtitle {
+    font-size: 14px;
+    font-weight: 400;
+    color: ${TEXT_SECONDARY};
+    margin-bottom: 10px;
+}
+
+QLabel#AlgoEditDialogTitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: ${TEXT_PRIMARY};
+    background: transparent;
+}
+
+QComboBox#AlgoEditCategoryCombo {
+    border: 1px solid ${LINE};
+    border-radius: 4px;
+    padding: 5px;
+    background: ${SURFACE};
+    color: ${TEXT_PRIMARY};
+}
+
+QComboBox#AlgoEditCategoryCombo::drop-down {
+    border: none;
+}
+
+QComboBox#AlgoEditCategoryCombo::down-arrow {
+    image: url(:/icons/arrow_down);
+}
+
+QTreeView#FunctionCategoryTree {
+    background: #F5F6F7;
+    border-radius: 8px;
+    border: none;
+    padding: 6px;
+}
+
+QTreeView#FunctionCategoryTree::item {
+    min-height: 28px;
+    padding-left: 8px;
+    border-radius: 4px;
+}
+
+QTreeView#FunctionCategoryTree::item:selected {
+    background: #D3E3FD;
+    color: ${TEXT_PRIMARY};
+}
+
+QTableView#FunctionAlgoTable {
+    background: ${SURFACE};
+    border-radius: 8px;
+    border: none;
+    selection-background-color: #D3E3FD;
+    selection-color: ${TEXT_PRIMARY};
+    gridline-color: ${LINE};
+}
+
+QTableView#FunctionAlgoTable::item {
+    padding: 6px;
 }
 
 QLineEdit {
     border: none;
     background: transparent;
-    selection-background-color: #4285F4;
-    font-size: 14px;
+    selection-background-color: ${PRIMARY};
+    font-size: 11pt;
     padding: 5px;
 }
 
@@ -58,5 +156,5 @@ QLabel {
 }
 
 #LoginDialog {
-    background-color: #FFFFFF;
+    background-color: ${SURFACE};
 }

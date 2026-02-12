@@ -21,6 +21,6 @@ private:
   void set_line_progress(float p);
 
   float line_progress_;
-  QColor accent_color_; // 激活时颜色
+  QColor active_color_; // 激活时颜色
   QPropertyAnimation *line_animation_;
 };

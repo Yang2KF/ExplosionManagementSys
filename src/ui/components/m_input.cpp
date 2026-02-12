@@ -1,4 +1,5 @@
 #include "m_input.h"
+#include "ui_system.h"
 #include <QPainter>
 
 MaterialInput::MaterialInput(QWidget *parent)
@@ -6,7 +7,7 @@ MaterialInput::MaterialInput(QWidget *parent)
 
   setFixedHeight(40); // 留出足够的高度画底部线条
 
-  accent_color_ = QColor{"#4285F4"};
+  active_color_ = UISystem::instance().bg_primary();
   line_animation_ = new QPropertyAnimation(this, "lineProgress");
   line_animation_->setDuration(300);
   line_animation_->setEasingCurve(QEasingCurve::OutCurve);
@@ -18,12 +19,12 @@ void MaterialInput::paintEvent(QPaintEvent *event) {
 
   QPainter painter(this);
   // 绘制底部的灰色背景线
-  painter.setPen(QPen{QColor{"#E0E0E0"}, 1});
+  painter.setPen(QPen{UISystem::instance().line(), 1});
   painter.drawLine(0, height() - 1, width(), height() - 1);
 
   // 绘制中间向两边扩散的蓝色激活线
   if (line_progress_ > 0.0) {
-    painter.setPen(QPen{accent_color_, 2}); // 激活时线宽为2
+    painter.setPen(QPen{active_color_, 2}); // 激活时线宽为2
 
     int center = width() / 2;
     int halfWidth = (width() * line_progress_) / 2;
