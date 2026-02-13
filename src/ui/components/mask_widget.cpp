@@ -49,12 +49,20 @@ void MaskWidget::setOpacity(float opacity) {
 }
 
 void MaskWidget::show_mask() {
-  if (this->isVisible() && opacity_ == 0.4f)
+  ref_count_++;
+
+  if (this->isVisible() && opacity_ == 0.4f) {
+    this->raise();
     return;
+  }
 
   // 提到最上层，覆盖所有其他控件
   this->raise();
   this->show();
+
+  if (ref_count_ > 1) {
+    return;
+  }
 
   // 开始渐显动画 (0.0 -> 0.4)
   anim_->stop();
@@ -64,6 +72,16 @@ void MaskWidget::show_mask() {
 }
 
 void MaskWidget::hide_mask() {
+  if (ref_count_ <= 0) {
+    ref_count_ = 0;
+    return;
+  }
+
+  ref_count_--;
+  if (ref_count_ > 0) {
+    return;
+  }
+
   // 开始渐隐动画 (Current -> 0.0)
   anim_->stop();
   anim_->setStartValue(opacity_);

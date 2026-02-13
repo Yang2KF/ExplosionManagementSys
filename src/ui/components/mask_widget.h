@@ -29,4 +29,6 @@ private:
   static MaskWidget *self_;  // 单例指针
   float opacity_;            // 当前透明度 (0.0 - 1.0)
   QPropertyAnimation *anim_; // 动画对象
+
+  int ref_count_ = 0;
 };
