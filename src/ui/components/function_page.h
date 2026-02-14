@@ -2,6 +2,7 @@
 
 #include "m_button.h"
 #include "m_input.h"
+#include "model/algorithm_service.h"
 #include "model/algorithm_table_model.h"
 #include "model/category_tree_model.h"
 #include <QHBoxLayout>
@@ -36,4 +37,5 @@ private:
 
   CategoryTreeModel *tree_model_;
   AlgorithmTableModel *table_model_;
+  AlgorithmService algorithm_service_;
 };

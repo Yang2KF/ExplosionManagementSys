@@ -1,13 +1,9 @@
 #include "function_page.h"
 #include "algo_edit_dialog.h"
-#include "db/db_manager.h"
 #include "m_message_box.h"
 #include "ui_system.h"
-#include <QDateTime>
 #include <QHeaderView>
 #include <QLabel>
-#include <QSqlError>
-#include <QSqlQuery>
 #include <QVBoxLayout>
 
 FunctionPage::FunctionPage(QWidget *parent) : QWidget(parent) { init_ui(); }
@@ -29,10 +25,10 @@ void FunctionPage::init_ui() {
   category_tree_->expandAll();
 
   table_model_ = new AlgorithmTableModel(this);
-  table_model_->load_data(-1);
+  table_model_->load_data(QString());
   algo_table_->setModel(table_model_);
 
-  algo_table_->setColumnWidth(0, 50);
+  algo_table_->setColumnWidth(0, 220);
   algo_table_->setColumnWidth(1, 150);
   algo_table_->setColumnWidth(2, 150);
 
@@ -100,14 +96,14 @@ void FunctionPage::init_connections() {
           [this](const QModelIndex &index) {
             QVariant id_data = index.data(Qt::UserRole + 1);
             if (id_data.isValid()) {
-              int category_id = id_data.toInt();
+              QString category_id = id_data.toString();
               table_model_->load_data(category_id);
             }
           });
 
   connect(refresh_btn_, &QPushButton::clicked, this, [this]() {
     tree_model_->reload();
-    table_model_->load_data(-1);
+    table_model_->load_data(QString());
     category_tree_->expandAll();
   });
 
@@ -120,27 +116,14 @@ void FunctionPage::init_connections() {
     AlgoEditDialog dlg(this);
     if (dlg.exec() == QDialog::Accepted) {
       AlgorithmInfo info = dlg.get_data();
-
-      QSqlDatabase db = DBManager::instance().database();
-      QSqlQuery query(db);
-      query.prepare("INSERT INTO algorithms (category_id, name, description, "
-                    "file_path, func_name, created_at) "
-                    "VALUES (:cid, :name, :desc, :path, :func, :time)");
-
-      query.bindValue(":cid", info.categoryId);
-      query.bindValue(":name", info.name);
-      query.bindValue(":desc", info.description);
-      query.bindValue(":path", info.filePath);
-      query.bindValue(":func", info.funcName);
-      query.bindValue(":time", QDateTime::currentDateTime());
-
-      if (query.exec()) {
-        table_model_->load_data(-1);
+      QString error_message;
+      if (algorithm_service_.create_algorithm(info, &error_message)) {
+        table_model_->load_data(QString());
         MaterialMessageBox::information(this, "Success",
                                         "Algorithm has been added.");
       } else {
         MaterialMessageBox::error(this, "Failed",
-                                  "Database error: " + query.lastError().text());
+                                  "Database error: " + error_message);
       }
     }
   });
@@ -153,7 +136,7 @@ void FunctionPage::init_connections() {
       return;
     }
 
-    int algo_id = index.siblingAtColumn(0).data().toInt();
+    QString algo_id = index.siblingAtColumn(0).data().toString();
     QString algo_name = index.siblingAtColumn(1).data().toString();
 
     int reply = MaterialMessageBox::question(
@@ -162,16 +145,12 @@ void FunctionPage::init_connections() {
             .arg(algo_name));
 
     if (reply == QDialog::Accepted) {
-      QSqlDatabase db = DBManager::instance().database();
-      QSqlQuery query(db);
-      query.prepare("DELETE FROM algorithms WHERE id = :id");
-      query.bindValue(":id", algo_id);
-
-      if (query.exec()) {
-        table_model_->load_data(-1);
+      QString error_message;
+      if (algorithm_service_.delete_algorithm(algo_id, &error_message)) {
+        table_model_->load_data(QString());
       } else {
         MaterialMessageBox::error(this, "Failed",
-                                  "Delete failed: " + query.lastError().text());
+                                  "Delete failed: " + error_message);
       }
     }
   });
@@ -188,26 +167,13 @@ void FunctionPage::init_connections() {
 
             if (dlg.exec() == QDialog::Accepted) {
               AlgorithmInfo new_info = dlg.get_data();
-
-              QSqlDatabase db = DBManager::instance().database();
-              QSqlQuery query(db);
-              query.prepare("UPDATE algorithms SET category_id=:cid, "
-                            "name=:name, description=:desc, "
-                            "file_path=:path, func_name=:func WHERE id=:id");
-
-              query.bindValue(":cid", new_info.categoryId);
-              query.bindValue(":name", new_info.name);
-              query.bindValue(":desc", new_info.description);
-              query.bindValue(":path", new_info.filePath);
-              query.bindValue(":func", new_info.funcName);
-              query.bindValue(":id", info.id);
-
-              if (query.exec()) {
-                table_model_->load_data(-1);
+              new_info.id = info.id;
+              QString error_message;
+              if (algorithm_service_.update_algorithm(new_info, &error_message)) {
+                table_model_->load_data(QString());
               } else {
                 MaterialMessageBox::error(this, "Failed",
-                                          "Update failed: " +
-                                              query.lastError().text());
+                                          "Update failed: " + error_message);
               }
             }
           });

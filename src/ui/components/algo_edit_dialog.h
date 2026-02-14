@@ -3,6 +3,7 @@
 #include "entities/algorithm_data.h"
 #include "m_button.h"
 #include "m_input.h"
+#include "model/category_service.h"
 #include <QComboBox>
 #include <QDialog>
 
@@ -38,8 +39,9 @@ private:
 
   MaterialButton *confirm_btn_;
   MaterialButton *cancel_btn_;
+  CategoryService category_service_;
 
   // 拖拽相关
   QPoint drag_pos_;
-  int current_algo_id_ = -1; // -1 表示新增
+  QString current_algo_id_; // empty means create mode
 };

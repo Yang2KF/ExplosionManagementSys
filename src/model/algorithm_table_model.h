@@ -19,7 +19,7 @@ public:
 
   // --- 自定义功能 ---
   // 根据分类 ID 加载数据
-  void load_data(int category_id);
+  void load_data(const QString &category_id);
   // 根据搜索关键词加载数据
   void search_data(const QString &keyword);
 

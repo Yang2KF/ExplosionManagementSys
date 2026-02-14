@@ -6,8 +6,8 @@
 
 // 算法参数实体
 struct AlgorithmParam {
-  int id;
-  int algoId;
+  QString id;
+  QString algoId;
   QString name;
   QString type; // "double", "int", "string"
   QString defaultValue;
@@ -15,8 +15,8 @@ struct AlgorithmParam {
 
 // 算法信息实体
 struct AlgorithmInfo {
-  int id;
-  int categoryId;
+  QString id;
+  QString categoryId;
   QString name;
   QString description;
 
@@ -32,7 +32,7 @@ struct AlgorithmInfo {
 
 // 分类实体
 struct AlgoCategory {
-  int id;
-  int parentId;
+  QString id;
+  QString parentId;
   QString name;
 };

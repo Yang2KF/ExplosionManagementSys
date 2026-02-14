@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QStandardItemModel>
+#include <QString>
 
 class CategoryTreeModel : public QStandardItemModel {
   Q_OBJECT
@@ -12,5 +13,5 @@ public:
 
 private:
   // 递归辅助函数：加载子分类
-  void load_children(QStandardItem *parent_item, int parent_id);
+  void load_children(QStandardItem *parent_item, const QString &parent_id);
 };

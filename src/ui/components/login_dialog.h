@@ -2,6 +2,7 @@
 
 #include "m_button.h"
 #include "m_input.h"
+#include "model/auth_service.h"
 #include <QDialog>
 
 class LoginDialog : public QDialog {
@@ -28,4 +29,5 @@ private:
   MaterialInput *pass_edit_;
   MaterialButton *login_btn_;
   MaterialButton *cancel_btn_; // 新增一个取消/关闭按钮
+  AuthService auth_service_;
 };

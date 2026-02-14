@@ -1,13 +1,10 @@
 #include "login_dialog.h"
-#include "db/db_manager.h"
 #include "m_message_box.h"
 #include "mask_widget.h"
 #include "ui_system.h"
 #include <QGraphicsDropShadowEffect>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QSqlError>
-#include <QSqlQuery>
 #include <QVBoxLayout>
 
 LoginDialog::LoginDialog(QWidget *parent) : QDialog(parent) {
@@ -104,24 +101,20 @@ void LoginDialog::onLoginClicked() {
     return;
   }
 
-  QSqlDatabase db = DBManager::instance().database();
-  QSqlQuery query(db);
-  query.prepare("SELECT role FROM users WHERE username = :u AND password = :p");
-  query.bindValue(":u", user);
-  query.bindValue(":p", pass);
-
-  if (query.exec()) {
-    if (query.next()) {
-      emit loginSuccess();
-      accept();
-    } else {
-      MaterialMessageBox::error(this, "Login Failed",
-                                "Invalid username or password.");
-      pass_edit_->clear();
-      pass_edit_->setFocus();
-    }
+  QString role;
+  QString error_message;
+  if (auth_service_.login(user, pass, &role, &error_message)) {
+    emit loginSuccess();
+    accept();
   } else {
-    MaterialMessageBox::error(
-        this, "Error", "Database query failed: " + query.lastError().text());
+    if (!error_message.isEmpty()) {
+      MaterialMessageBox::error(this, "Error",
+                                "Database query failed: " + error_message);
+      return;
+    }
+    MaterialMessageBox::error(this, "Login Failed",
+                              "Invalid username or password.");
+    pass_edit_->clear();
+    pass_edit_->setFocus();
   }
 }

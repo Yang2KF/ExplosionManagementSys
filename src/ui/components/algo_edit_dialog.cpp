@@ -1,5 +1,4 @@
 #include "algo_edit_dialog.h"
-#include "db/db_manager.h"
 #include "m_message_box.h"
 #include "mask_widget.h"
 #include "ui_system.h"
@@ -7,7 +6,6 @@
 #include <QGraphicsDropShadowEffect>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QSqlQuery>
 #include <QVBoxLayout>
 
 AlgoEditDialog::AlgoEditDialog(QWidget *parent) : QDialog(parent) {
@@ -131,12 +129,9 @@ void AlgoEditDialog::load_categories() {
   category_combo_->clear();
   category_combo_->addItem("Please select category...", QVariant());
 
-  QSqlDatabase db = DBManager::instance().database();
-  QSqlQuery query(db);
-  if (query.exec("SELECT id, name FROM categories")) {
-    while (query.next()) {
-      category_combo_->addItem(query.value("name").toString(), query.value("id"));
-    }
+  QList<AlgoCategory> categories = category_service_.fetch_all_categories();
+  for (const AlgoCategory &category : categories) {
+    category_combo_->addItem(category.name, category.id);
   }
 }
 
@@ -144,7 +139,7 @@ AlgorithmInfo AlgoEditDialog::get_data() const {
   AlgorithmInfo info;
   info.id = current_algo_id_;
   info.name = name_input_->text();
-  info.categoryId = category_combo_->currentData().toInt();
+  info.categoryId = category_combo_->currentData().toString();
   info.filePath = path_input_->text();
   info.funcName = func_input_->text();
   info.description = desc_input_->text();
