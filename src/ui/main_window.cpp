@@ -87,9 +87,11 @@ void MainWindow::setup_header() {
 }
 
 void MainWindow::setup_content() {
-  pages_stack_ = new QStackedWidget(this);
+  pages_stack_ = new SlideStackedWidget(this);
 
   pages_stack_->setContentsMargins(10, 10, 10, 10);
+  pages_stack_->setOrientation(SlideStackedWidget::Orientation::Vertical);
+  pages_stack_->setSlideDuration(240);
 
   pages_stack_->insertWidget(Page_User, new UserPage(this));
   pages_stack_->insertWidget(Page_Home, new HomePage(this));
@@ -106,16 +108,16 @@ void MainWindow::onSiderBtnClicked(int id) {
       LoginDialog loginDlg(this);
       if (loginDlg.exec() == QDialog::Accepted) {
         is_logged_ = true;
-        pages_stack_->setCurrentIndex(Page_User);
+        pages_stack_->slideToIndex(Page_User);
       } else {
         return;
       }
     } else {
-      pages_stack_->setCurrentIndex(Page_User);
+      pages_stack_->slideToIndex(Page_User);
     }
   } else {
     if (id >= 0 && id < pages_stack_->count()) {
-      pages_stack_->setCurrentIndex(id);
+      pages_stack_->slideToIndex(id);
     }
   }
 }
