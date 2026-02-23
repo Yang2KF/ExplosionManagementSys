@@ -13,34 +13,31 @@ DBManager &DBManager::instance() {
 QSqlDatabase DBManager::database() { return QSqlDatabase::database(CONN_NAME); }
 
 bool DBManager::init() {
-  QString path =
-      QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-  QDir dir(path);
-  if (!dir.exists()) {
-    dir.mkpath(".");
-  }
-
-  QString dbPath = dir.filePath(DB_NAME);
-  qDebug() << "DB Path:" << dbPath;
-
   QSqlDatabase db;
   if (QSqlDatabase::contains(CONN_NAME)) {
     db = database();
   } else {
-    db = QSqlDatabase::addDatabase("QSQLITE", CONN_NAME);
-    db.setDatabaseName(dbPath);
+    db = QSqlDatabase::addDatabase("QMYSQL", CONN_NAME);
+
+    db.setHostName("127.0.0.1");
+
+    db.setPort(3306);
+
+    db.setDatabaseName("explosion");
+    db.setUserName("root");
+    db.setPassword("200463");
   }
 
   if (!db.open()) {
-    qDebug() << "Error: Connection failed" << db.lastError();
+    qDebug() << "Error: MySQL Connection failed" << db.lastError().text();
     return false;
   }
 
-  if (!create_tables()) {
-    return false;
-  }
+  qDebug() << "Success: Connected to MySQL!";
 
+  create_tables();
   seed_data();
+
   return true;
 }
 
@@ -60,62 +57,69 @@ void DBManager::close() {
 bool DBManager::create_tables() {
   QSqlDatabase db = database();
   QSqlQuery query(db);
+  bool success;
 
-  bool success = query.exec(
+  success = query.exec(
       "CREATE TABLE IF NOT EXISTS alg_category ("
-      "CATEGORY_NAME TEXT, "
-      "CATEGORY_ID TEXT PRIMARY KEY, "
-      "PARENT_ID TEXT DEFAULT '0', "
-      "COMMENTS TEXT, "
-      "ALG_URL TEXT)");
+      "CATEGORY_ID VARCHAR(36) NOT NULL PRIMARY KEY COMMENT '类别ID', "
+      "CATEGORY_NAME VARCHAR(255) DEFAULT NULL COMMENT '类别名称', "
+      "PARENT_ID VARCHAR(36) DEFAULT '0' COMMENT '父级ID', "
+      "COMMENTS VARCHAR(255) DEFAULT NULL COMMENT '备注', "
+      "ALG_URL VARCHAR(255) DEFAULT NULL COMMENT '浏览或调用算法的URL' "
+      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
   if (!success) {
-    qDebug() << "Create alg_category failed:" << query.lastError();
+    qDebug() << "Create alg_category failed:" << query.lastError().text();
     return false;
   }
 
   success = query.exec(
       "CREATE TABLE IF NOT EXISTS algorithms ("
-      "ALGID TEXT PRIMARY KEY, "
-      "ALGNAME TEXT, "
-      "COMMENTS TEXT, "
-      "HELPURL TEXT, "
-      "CALLURL TEXT, "
-      "CALLID TEXT, "
-      "SRC TEXT, "
-      "SRC_TYPE TEXT, "
-      "ALGIDENTIFIER TEXT, "
-      "CLSID TEXT, "
-      "CREATED_AT DATETIME)");
+      "ALGID VARCHAR(36) NOT NULL PRIMARY KEY COMMENT '算法ID', "
+      "ALGNAME VARCHAR(255) DEFAULT NULL COMMENT '算法名称', "
+      "COMMENTS TEXT COMMENT '备注说明', "
+      "HELPURL TEXT COMMENT '帮助链接', "
+      "CALLURL TEXT COMMENT '调用链接', "
+      "CALLID VARCHAR(200) DEFAULT NULL COMMENT '调用函数的导出名', "
+      "SRC VARCHAR(255) DEFAULT NULL COMMENT '算法文件(dll/jar)路径', "
+      "SRC_TYPE VARCHAR(3) DEFAULT NULL COMMENT '1:dll, 2:jar/py', "
+      "ALGIDENTIFIER VARCHAR(30) DEFAULT NULL COMMENT '算法标识符', "
+      "CLSID VARCHAR(36) DEFAULT NULL COMMENT '类别ID(关联alg_category)', "
+      "CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间' "
+      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
   if (!success) {
-    qDebug() << "Create algorithms failed:" << query.lastError();
+    qDebug() << "Create algorithms failed:" << query.lastError().text();
     return false;
   }
 
   success = query.exec(
       "CREATE TABLE IF NOT EXISTS alg_inparams ("
-      "UUID TEXT, "
-      "ALGID TEXT, "
-      "P_IDENTIFIER TEXT, "
-      "P_ZHNAME TEXT, "
-      "UNIT TEXT, "
-      "DATATYPE TEXT, "
-      "INCONFIG TEXT DEFAULT '{\"datatype\":\"number\",\"ui\":\"text\"}', "
-      "VALIDATOR TEXT, "
-      "TOOLTIP TEXT, "
-      "COMMENTS TEXT, "
-      "SHOWORDER TEXT)");
+      "UUID VARCHAR(36) NOT NULL PRIMARY KEY COMMENT '参数唯一ID', "
+      "ALGID VARCHAR(36) NOT NULL COMMENT '所属算法ID', "
+      "P_IDENTIFIER VARCHAR(50) DEFAULT NULL COMMENT '参数标识符', "
+      "P_ZHNAME VARCHAR(100) DEFAULT NULL COMMENT '参数中文名', "
+      "UNIT VARCHAR(25) DEFAULT NULL COMMENT '参数单位', "
+      "DATATYPE VARCHAR(25) DEFAULT NULL COMMENT '数据类型', "
+      "INCONFIG VARCHAR(200) DEFAULT "
+      "'{\"datatype\":\"number\",\"ui\":\"text\"}' COMMENT '前端UI配置', "
+      "VALIDATOR VARCHAR(100) DEFAULT NULL COMMENT '验证规则', "
+      "TOOLTIP VARCHAR(100) DEFAULT NULL COMMENT '提示信息', "
+      "COMMENTS VARCHAR(100) DEFAULT NULL COMMENT '备注', "
+      "SHOWORDER INT DEFAULT 0 COMMENT '显示顺序' "
+      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
   if (!success) {
-    qDebug() << "Create alg_inparams failed:" << query.lastError();
+    qDebug() << "Create alg_inparams failed:" << query.lastError().text();
     return false;
   }
 
-  success = query.exec("CREATE TABLE IF NOT EXISTS users ("
-                       "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                       "username TEXT UNIQUE NOT NULL, "
-                       "password TEXT NOT NULL, "
-                       "role TEXT DEFAULT 'user')");
+  success = query.exec(
+      "CREATE TABLE IF NOT EXISTS users ("
+      "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
+      "username VARCHAR(50) NOT NULL UNIQUE, "
+      "password VARCHAR(255) NOT NULL, "
+      "role VARCHAR(20) DEFAULT 'user' "
+      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
   if (!success) {
-    qDebug() << "Create users failed:" << query.lastError();
+    qDebug() << "Create users failed:" << query.lastError().text();
     return false;
   }
 
@@ -166,7 +170,8 @@ void DBManager::seed_data() {
     q.bindValue(":src_type", "1");
     q.bindValue(":identifier", call_id);
     q.bindValue(":clsid", clsid);
-    q.bindValue(":created_at", QDateTime::currentDateTime().addDays(-rand() % 10));
+    q.bindValue(":created_at",
+                QDateTime::currentDateTime().addDays(-rand() % 10));
     q.exec();
   };
 
