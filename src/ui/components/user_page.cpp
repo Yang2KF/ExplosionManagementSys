@@ -9,7 +9,7 @@ void UserPage::init_ui() {
   this->setObjectName("UserPage");
 
   QVBoxLayout *layout = new QVBoxLayout(this);
-  QLabel *label = new QLabel("user", this);
+  QLabel *label = new QLabel("用户页面", this);
   label->setAlignment(Qt::AlignCenter);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->addWidget(label);

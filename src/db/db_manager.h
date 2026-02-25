@@ -26,6 +26,9 @@ private:
   ~DBManager() = default; // 析构不再做任何数据库操作
 
   bool create_tables();
+  bool ensure_column_exists(QSqlDatabase &db, const QString &table_name,
+                            const QString &column_name,
+                            const QString &column_definition);
   void seed_data();
 
   const QString DB_NAME = "explosion_algo.db";

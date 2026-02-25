@@ -8,9 +8,17 @@
 struct AlgorithmParam {
   QString id;
   QString algoId;
-  QString name;
+  QString identifier; // 参数键名(调用时使用)
+  QString name;       // 参数显示名
+  QString unit;
   QString type; // "double", "int", "string"
   QString defaultValue;
+  QString minValue;
+  QString maxValue;
+  QString validator;
+  QString tooltip;
+  bool required = false;
+  int order = 0;
 };
 
 // 算法信息实体

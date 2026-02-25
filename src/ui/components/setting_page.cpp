@@ -10,7 +10,7 @@ void SettingPage::init_ui() {
   this->setObjectName("SettingPage");
 
   QVBoxLayout *layout = new QVBoxLayout(this);
-  QLabel *label = new QLabel("setting", this);
+  QLabel *label = new QLabel("设置页面", this);
   label->setAlignment(Qt::AlignCenter);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->addWidget(label);

@@ -24,21 +24,22 @@ void SideBar::init_ui() {
 
   QList<SideInfo> sider_lists{
       {0, UISystem::instance().user_icon(), UISystem::instance().user_icon(),
-       "user"},
+       "用户"},
       {1, UISystem::instance().home_icon(),
-       UISystem::instance().home_icon_checked(), "home"},
+       UISystem::instance().home_icon_checked(), "主页"},
       {2, UISystem::instance().function_icon(),
-       UISystem::instance().function_icon_checked(), "function"},
+       UISystem::instance().function_icon_checked(), "算法"},
       {3, UISystem::instance().settings_icon(),
-       UISystem::instance().settings_icon_checked(), "settings"},
+       UISystem::instance().settings_icon_checked(), "设置"},
       {4, UISystem::instance().information_icon(),
-       UISystem::instance().information_icon_checked(), "information"}};
+       UISystem::instance().information_icon_checked(), "帮助"}};
 
   for (const auto &side_btn : sider_lists) {
     MaterialButton *btn = new MaterialButton(MaterialButton::WithIcon, this);
     btn->setFixedSize(50, 50);
     btn->setIconSize(QSize{35, 35});
     btn->set_icons(side_btn.icon, side_btn.icon_checked);
+    btn->setToolTip(side_btn.tool_tip);
     nav_group->addButton(btn, side_btn.id);
     layout->addWidget(btn);
 

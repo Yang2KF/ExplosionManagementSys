@@ -54,12 +54,12 @@ void AlgoEditDialog::init_ui() {
   content_layout->setContentsMargins(30, 30, 30, 30);
   content_layout->setSpacing(20);
 
-  QLabel *title = new QLabel("Algorithm Information", this);
+  QLabel *title = new QLabel("算法信息", this);
   title->setObjectName("AlgoEditDialogTitle");
   content_layout->addWidget(title);
 
   name_input_ = new MaterialInput(this);
-  name_input_->setPlaceholderText("Algorithm Name");
+  name_input_->setPlaceholderText("算法名称");
   content_layout->addWidget(name_input_);
 
   category_combo_ = new QComboBox(this);
@@ -69,7 +69,7 @@ void AlgoEditDialog::init_ui() {
 
   QHBoxLayout *path_layout = new QHBoxLayout();
   path_input_ = new MaterialInput(this);
-  path_input_->setPlaceholderText("Library Path (.dll)");
+  path_input_->setPlaceholderText("算法库路径（.dll）");
 
   path_btn_ = new MaterialButton("...", MaterialButton::Normal, this);
   path_btn_->setFixedSize(40, 40);
@@ -80,11 +80,11 @@ void AlgoEditDialog::init_ui() {
   content_layout->addLayout(path_layout);
 
   func_input_ = new MaterialInput(this);
-  func_input_->setPlaceholderText("Export Function Name");
+  func_input_->setPlaceholderText("导出函数名");
   content_layout->addWidget(func_input_);
 
   desc_input_ = new MaterialInput(this);
-  desc_input_->setPlaceholderText("Short Description");
+  desc_input_->setPlaceholderText("算法说明");
   content_layout->addWidget(desc_input_);
 
   content_layout->addStretch();
@@ -92,11 +92,11 @@ void AlgoEditDialog::init_ui() {
   QHBoxLayout *btn_layout = new QHBoxLayout();
   btn_layout->addStretch();
 
-  cancel_btn_ = new MaterialButton("Cancel", MaterialButton::Normal, this);
+  cancel_btn_ = new MaterialButton("取消", MaterialButton::Normal, this);
   cancel_btn_->set_theme_color(UISystem::instance().neutral());
   cancel_btn_->setFixedSize(80, 35);
 
-  confirm_btn_ = new MaterialButton("Save", MaterialButton::Normal, this);
+  confirm_btn_ = new MaterialButton("保存", MaterialButton::Normal, this);
   confirm_btn_->set_theme_color(UISystem::instance().bg_primary());
   confirm_btn_->setFixedSize(80, 35);
 
@@ -108,8 +108,7 @@ void AlgoEditDialog::init_ui() {
 
   connect(confirm_btn_, &QPushButton::clicked, this, [this]() {
     if (name_input_->text().isEmpty() || category_combo_->currentData().isNull()) {
-      MaterialMessageBox::warning(this, "Hint",
-                                  "Please enter algorithm name and select a category.");
+      MaterialMessageBox::warning(this, "提示", "请输入算法名称并选择分类。");
       return;
     }
     accept();
@@ -117,8 +116,8 @@ void AlgoEditDialog::init_ui() {
 
   connect(path_btn_, &QPushButton::clicked, this, [this]() {
     QString path = QFileDialog::getOpenFileName(
-        this, "Select Algorithm Library", QString(),
-        "Library Files (*.dll *.so *.dylib)");
+        this, "选择算法库文件", QString(),
+        "动态库文件 (*.dll *.so *.dylib)");
     if (!path.isEmpty()) {
       path_input_->setText(path);
     }
@@ -127,7 +126,7 @@ void AlgoEditDialog::init_ui() {
 
 void AlgoEditDialog::load_categories() {
   category_combo_->clear();
-  category_combo_->addItem("Please select category...", QVariant());
+  category_combo_->addItem("请选择算法分类...", QVariant());
 
   QList<AlgoCategory> categories = category_service_.fetch_all_categories();
   for (const AlgoCategory &category : categories) {

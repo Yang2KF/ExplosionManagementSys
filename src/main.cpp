@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
   QApplication app(argc, argv);
 
   if (!DBManager::instance().init()) {
-    qWarning() << "Database Init Failed!";
+    qWarning() << "数据库初始化失败！";
   }
 
   QFile file(":/styles/style");

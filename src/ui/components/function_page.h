@@ -2,6 +2,7 @@
 
 #include "m_button.h"
 #include "m_input.h"
+#include "m_menu.h"
 #include "model/algorithm_service.h"
 #include "model/algorithm_table_model.h"
 #include "model/category_tree_model.h"
@@ -11,7 +12,6 @@
 #include <QTreeView>
 #include <QVBoxLayout>
 #include <QWidget>
-
 
 class FunctionPage : public QWidget {
   Q_OBJECT
@@ -23,17 +23,23 @@ private:
   void setup_toolbar();
   void setup_views();
   void init_connections();
+  void show_table_context_menu(const QPoint &pos);
+  void run_algorithm_by_row(int row);
+  void edit_algorithm_by_row(int row);
+  void delete_algorithm_by_row(int row);
 
   QVBoxLayout *main_layout_;
   QHBoxLayout *tool_layout_;
   MaterialInput *search_input_;
   MaterialButton *add_btn_;
-  MaterialButton *delete_btn_;
   MaterialButton *refresh_btn_;
 
   QSplitter *splitter_;
   QTreeView *category_tree_; // 左侧分类树
-  QTableView *algo_table_;   // 右侧算法表
+
+  QWidget *right_panel_;
+  QVBoxLayout *right_layout_;
+  QTableView *algo_table_; // 右侧算法表
 
   CategoryTreeModel *tree_model_;
   AlgorithmTableModel *table_model_;

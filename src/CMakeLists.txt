@@ -1,8 +1,8 @@
-file(GLOB_RECURSE MODEL_SRCS
+file(GLOB_RECURSE MODEL_SRCS CONFIGURE_DEPENDS
     "model/*.cpp" 
     "db/*.cpp"
 )
-file(GLOB_RECURSE MODEL_HEADERS 
+file(GLOB_RECURSE MODEL_HEADERS CONFIGURE_DEPENDS
     "model/*.h" 
     "db/*.h"       
     "entities/*.h"

@@ -4,7 +4,7 @@
 
 CategoryTreeModel::CategoryTreeModel(QObject *parent)
     : QStandardItemModel(parent) {
-  setHorizontalHeaderLabels(QStringList() << "Category");
+  setHorizontalHeaderLabels(QStringList() << "分类");
 }
 
 void CategoryTreeModel::reload() {

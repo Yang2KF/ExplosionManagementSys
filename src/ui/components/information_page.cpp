@@ -11,7 +11,7 @@ void InformationPage::init_ui() {
   this->setObjectName("InformationPage");
 
   QVBoxLayout *layout = new QVBoxLayout(this);
-  QLabel *label = new QLabel("help", this);
+  QLabel *label = new QLabel("帮助页面", this);
   label->setAlignment(Qt::AlignCenter);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->addWidget(label);

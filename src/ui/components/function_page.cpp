@@ -1,10 +1,10 @@
 #include "function_page.h"
 #include "algo_edit_dialog.h"
+#include "algorithm_run_dialog.h"
 #include "m_message_box.h"
 #include "ui_system.h"
+#include <QFrame>
 #include <QHeaderView>
-#include <QLabel>
-#include <QVBoxLayout>
 
 FunctionPage::FunctionPage(QWidget *parent) : QWidget(parent) { init_ui(); }
 
@@ -40,25 +40,20 @@ void FunctionPage::setup_toolbar() {
   tool_layout_->setSpacing(10);
 
   search_input_ = new MaterialInput(this);
-  search_input_->setPlaceholderText("Search algorithm name...");
+  search_input_->setPlaceholderText("搜索算法名称...");
   search_input_->setFixedWidth(300);
 
-  add_btn_ = new MaterialButton("New", MaterialButton::Normal, this);
+  add_btn_ = new MaterialButton("新增", MaterialButton::Normal, this);
   add_btn_->set_theme_color(UISystem::instance().bg_primary());
   add_btn_->setFixedSize(100, 40);
 
-  delete_btn_ = new MaterialButton("Delete", MaterialButton::Normal, this);
-  delete_btn_->set_theme_color(UISystem::instance().status_error());
-  delete_btn_->setFixedSize(100, 40);
-
-  refresh_btn_ = new MaterialButton("Refresh", MaterialButton::Normal, this);
+  refresh_btn_ = new MaterialButton("刷新", MaterialButton::Normal, this);
   refresh_btn_->setFixedSize(80, 40);
   refresh_btn_->set_theme_color(UISystem::instance().neutral());
 
   tool_layout_->addWidget(search_input_);
   tool_layout_->addStretch();
   tool_layout_->addWidget(refresh_btn_);
-  tool_layout_->addWidget(delete_btn_);
   tool_layout_->addWidget(add_btn_);
 
   main_layout_->addLayout(tool_layout_);
@@ -74,17 +69,25 @@ void FunctionPage::setup_views() {
   category_tree_->setHeaderHidden(true);
   category_tree_->setFrameShape(QFrame::NoFrame);
 
-  algo_table_ = new QTableView(splitter_);
+  right_panel_ = new QWidget(splitter_);
+  right_layout_ = new QVBoxLayout(right_panel_);
+  right_layout_->setContentsMargins(0, 0, 0, 0);
+  right_layout_->setSpacing(12);
+
+  algo_table_ = new QTableView(right_panel_);
   algo_table_->setObjectName("FunctionAlgoTable");
   algo_table_->setFrameShape(QFrame::NoFrame);
   algo_table_->setAlternatingRowColors(true);
   algo_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
+  algo_table_->setSelectionMode(QAbstractItemView::SingleSelection);
+  algo_table_->setContextMenuPolicy(Qt::CustomContextMenu);
   algo_table_->verticalHeader()->setVisible(false);
   algo_table_->horizontalHeader()->setStretchLastSection(true);
 
-  splitter_->addWidget(category_tree_);
-  splitter_->addWidget(algo_table_);
+  right_layout_->addWidget(algo_table_);
 
+  splitter_->addWidget(category_tree_);
+  splitter_->addWidget(right_panel_);
   splitter_->setStretchFactor(0, 1);
   splitter_->setStretchFactor(1, 4);
 
@@ -94,10 +97,11 @@ void FunctionPage::setup_views() {
 void FunctionPage::init_connections() {
   connect(category_tree_, &QTreeView::clicked, this,
           [this](const QModelIndex &index) {
-            QVariant id_data = index.data(Qt::UserRole + 1);
+            const QVariant id_data = index.data(Qt::UserRole + 1);
             if (id_data.isValid()) {
-              QString category_id = id_data.toString();
-              table_model_->load_data(category_id);
+              table_model_->load_data(id_data.toString());
+            } else {
+              table_model_->load_data(QString());
             }
           });
 
@@ -108,73 +112,148 @@ void FunctionPage::init_connections() {
   });
 
   connect(search_input_, &QLineEdit::returnPressed, this, [this]() {
-    QString key = search_input_->text();
-    table_model_->search_data(key);
+    table_model_->search_data(search_input_->text().trimmed());
   });
 
   connect(add_btn_, &QPushButton::clicked, this, [this]() {
     AlgoEditDialog dlg(this);
-    if (dlg.exec() == QDialog::Accepted) {
-      AlgorithmInfo info = dlg.get_data();
-      QString error_message;
-      if (algorithm_service_.create_algorithm(info, &error_message)) {
-        table_model_->load_data(QString());
-        MaterialMessageBox::information(this, "Success",
-                                        "Algorithm has been added.");
-      } else {
-        MaterialMessageBox::error(this, "Failed",
-                                  "Database error: " + error_message);
-      }
-    }
-  });
-
-  connect(delete_btn_, &QPushButton::clicked, this, [this]() {
-    QModelIndex index = algo_table_->currentIndex();
-    if (!index.isValid()) {
-      MaterialMessageBox::warning(this, "Hint",
-                                  "Please select an algorithm to delete.");
+    if (dlg.exec() != QDialog::Accepted) {
       return;
     }
 
-    QString algo_id = index.siblingAtColumn(0).data().toString();
-    QString algo_name = index.siblingAtColumn(1).data().toString();
-
-    int reply = MaterialMessageBox::question(
-        this, "Confirm Delete",
-        QString("Are you sure you want to delete '%1'? This cannot be undone.")
-            .arg(algo_name));
-
-    if (reply == QDialog::Accepted) {
-      QString error_message;
-      if (algorithm_service_.delete_algorithm(algo_id, &error_message)) {
-        table_model_->load_data(QString());
-      } else {
-        MaterialMessageBox::error(this, "Failed",
-                                  "Delete failed: " + error_message);
-      }
+    const AlgorithmInfo info = dlg.get_data();
+    QString error_message;
+    if (algorithm_service_.create_algorithm(info, &error_message)) {
+      table_model_->load_data(QString());
+      MaterialMessageBox::information(this, "成功", "算法已新增。");
+    } else {
+      MaterialMessageBox::error(this, "失败", "数据库错误：" + error_message);
     }
   });
 
   connect(algo_table_, &QTableView::doubleClicked, this,
           [this](const QModelIndex &index) {
-            if (!index.isValid())
+            if (!index.isValid()) {
               return;
-
-            AlgorithmInfo info = table_model_->get_item(index.row());
-
-            AlgoEditDialog dlg(this);
-            dlg.set_data(info);
-
-            if (dlg.exec() == QDialog::Accepted) {
-              AlgorithmInfo new_info = dlg.get_data();
-              new_info.id = info.id;
-              QString error_message;
-              if (algorithm_service_.update_algorithm(new_info, &error_message)) {
-                table_model_->load_data(QString());
-              } else {
-                MaterialMessageBox::error(this, "Failed",
-                                          "Update failed: " + error_message);
-              }
             }
+            edit_algorithm_by_row(index.row());
           });
+
+  connect(algo_table_, &QWidget::customContextMenuRequested, this,
+          [this](const QPoint &pos) { show_table_context_menu(pos); });
+}
+
+void FunctionPage::show_table_context_menu(const QPoint &pos) {
+  if (!algo_table_ || !table_model_) {
+    return;
+  }
+
+  QPoint viewport_pos = pos;
+  QModelIndex index = algo_table_->indexAt(viewport_pos);
+  if (!index.isValid()) {
+    viewport_pos = algo_table_->viewport()->mapFrom(algo_table_, pos);
+    index = algo_table_->indexAt(viewport_pos);
+  }
+
+  if (!index.isValid()) {
+    int row = algo_table_->rowAt(viewport_pos.y());
+    if (row < 0) {
+      const QPoint alt_viewport_pos =
+          algo_table_->viewport()->mapFrom(algo_table_, pos);
+      row = algo_table_->rowAt(alt_viewport_pos.y());
+      if (row >= 0) {
+        viewport_pos = alt_viewport_pos;
+      }
+    }
+    if (row >= 0) {
+      index = table_model_->index(row, 0);
+    }
+  }
+
+  if (!index.isValid()) {
+    return;
+  }
+
+  algo_table_->setCurrentIndex(index);
+
+  MaterialMenu menu(this);
+  menu.add_action("run", "运行算法");
+  menu.add_action("edit", "编辑算法");
+  menu.add_action("delete", "删除算法");
+  const QString action_id =
+      menu.exec_and_get_id(algo_table_->viewport()->mapToGlobal(viewport_pos));
+
+  if (action_id == "run") {
+    run_algorithm_by_row(index.row());
+    return;
+  }
+
+  if (action_id == "edit") {
+    edit_algorithm_by_row(index.row());
+    return;
+  }
+
+  if (action_id == "delete") {
+    delete_algorithm_by_row(index.row());
+  }
+}
+
+void FunctionPage::run_algorithm_by_row(int row) {
+  if (row < 0 || !table_model_) {
+    return;
+  }
+
+  const AlgorithmInfo info = table_model_->get_item(row);
+  AlgorithmRunDialog dlg(info, this);
+  dlg.exec();
+}
+
+void FunctionPage::edit_algorithm_by_row(int row) {
+  if (row < 0 || !table_model_) {
+    return;
+  }
+
+  const AlgorithmInfo info = table_model_->get_item(row);
+  AlgoEditDialog dlg(this);
+  dlg.set_data(info);
+  if (dlg.exec() != QDialog::Accepted) {
+    return;
+  }
+
+  AlgorithmInfo new_info = dlg.get_data();
+  new_info.id = info.id;
+  QString error_message;
+  if (algorithm_service_.update_algorithm(new_info, &error_message)) {
+    table_model_->load_data(QString());
+  } else {
+    MaterialMessageBox::error(this, "失败", "更新失败：" + error_message);
+  }
+}
+
+void FunctionPage::delete_algorithm_by_row(int row) {
+  if (row < 0 || !table_model_) {
+    return;
+  }
+
+  const QModelIndex index = table_model_->index(row, 0);
+  if (!index.isValid()) {
+    MaterialMessageBox::warning(this, "提示", "请先选择要删除的算法。");
+    return;
+  }
+
+  const QString algo_id = index.siblingAtColumn(0).data().toString();
+  const QString algo_name = index.siblingAtColumn(1).data().toString();
+  const int reply = MaterialMessageBox::question(
+      this, "确认删除",
+      QString("确认删除算法“%1”？此操作不可撤销。").arg(algo_name));
+  if (reply != QDialog::Accepted) {
+    return;
+  }
+
+  QString error_message;
+  if (algorithm_service_.delete_algorithm(algo_id, &error_message)) {
+    table_model_->load_data(QString());
+  } else {
+    MaterialMessageBox::error(this, "失败", "删除失败：" + error_message);
+  }
 }

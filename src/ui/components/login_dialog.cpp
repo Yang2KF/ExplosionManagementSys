@@ -50,23 +50,23 @@ void LoginDialog::init_ui() {
   content_layout->setContentsMargins(40, 40, 40, 40);
   content_layout->setSpacing(25);
 
-  QLabel *title_label = new QLabel("System Login", this);
+  QLabel *title_label = new QLabel("系统登录", this);
   title_label->setObjectName("LoginDialogTitle");
   title_label->setAlignment(Qt::AlignCenter);
   content_layout->addWidget(title_label);
 
-  QLabel *sub_title = new QLabel("Explosion Damage Algorithm Management", this);
+  QLabel *sub_title = new QLabel("爆炸毁伤算法管理系统", this);
   sub_title->setObjectName("LoginDialogSubtitle");
   sub_title->setAlignment(Qt::AlignCenter);
   content_layout->addWidget(sub_title);
 
   user_edit_ = new MaterialInput(this);
-  user_edit_->setPlaceholderText("Username");
+  user_edit_->setPlaceholderText("用户名");
   user_edit_->setText("admin");
   content_layout->addWidget(user_edit_);
 
   pass_edit_ = new MaterialInput(this);
-  pass_edit_->setPlaceholderText("Password");
+  pass_edit_->setPlaceholderText("密码");
   pass_edit_->setEchoMode(QLineEdit::Password);
   pass_edit_->setText("123456");
   content_layout->addWidget(pass_edit_);
@@ -76,12 +76,12 @@ void LoginDialog::init_ui() {
 
   content_layout->addStretch();
 
-  login_btn_ = new MaterialButton("Login", MaterialButton::Normal, this);
+  login_btn_ = new MaterialButton("登录", MaterialButton::Normal, this);
   login_btn_->set_theme_color(UISystem::instance().bg_primary());
   login_btn_->setFixedHeight(40);
   content_layout->addWidget(login_btn_);
 
-  cancel_btn_ = new MaterialButton("Cancel", MaterialButton::Normal, this);
+  cancel_btn_ = new MaterialButton("取消", MaterialButton::Normal, this);
   cancel_btn_->set_theme_color(UISystem::instance().neutral());
   cancel_btn_->setFixedHeight(40);
   content_layout->addWidget(cancel_btn_);
@@ -96,8 +96,7 @@ void LoginDialog::onLoginClicked() {
   QString pass = pass_edit_->text().trimmed();
 
   if (user.isEmpty() || pass.isEmpty()) {
-    MaterialMessageBox::warning(this, "Hint",
-                                "Please enter username and password.");
+    MaterialMessageBox::warning(this, "提示", "请输入用户名和密码。");
     return;
   }
 
@@ -108,12 +107,11 @@ void LoginDialog::onLoginClicked() {
     accept();
   } else {
     if (!error_message.isEmpty()) {
-      MaterialMessageBox::error(this, "Error",
-                                "Database query failed: " + error_message);
+      MaterialMessageBox::error(this, "错误",
+                                "数据库查询失败：" + error_message);
       return;
     }
-    MaterialMessageBox::error(this, "Login Failed",
-                              "Invalid username or password.");
+    MaterialMessageBox::error(this, "登录失败", "用户名或密码错误。");
     pass_edit_->clear();
     pass_edit_->setFocus();
   }

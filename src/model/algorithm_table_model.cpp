@@ -6,7 +6,7 @@
 
 AlgorithmTableModel::AlgorithmTableModel(QObject *parent)
     : QAbstractTableModel(parent) {
-  headers_ << "ALGID" << "Algorithm Name" << "Call ID" << "Created At";
+  headers_ << "算法ID" << "算法名称" << "调用标识" << "创建时间";
 }
 
 int AlgorithmTableModel::rowCount(const QModelIndex &parent) const {
@@ -96,7 +96,7 @@ void AlgorithmTableModel::load_data(const QString &category_id) {
       data_list_.append(info);
     }
   } else {
-    qDebug() << "Load algorithms failed:" << query.lastError();
+    qDebug() << "加载算法数据失败：" << query.lastError();
   }
 
   endResetModel();

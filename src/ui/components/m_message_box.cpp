@@ -88,14 +88,14 @@ void MaterialMessageBox::setup_ui(Type type, const QString &title,
 
   if (type == Question) {
     MaterialButton *cancel_btn =
-        new MaterialButton("Cancel", MaterialButton::Normal, this);
+        new MaterialButton("取消", MaterialButton::Normal, this);
     cancel_btn->setFixedSize(70, 32);
     cancel_btn->set_theme_color(UISystem::instance().neutral());
     connect(cancel_btn, &QPushButton::clicked, this, &QDialog::reject);
     btn_layout->addWidget(cancel_btn);
 
     MaterialButton *ok_btn =
-        new MaterialButton("Confirm", MaterialButton::Normal, this);
+        new MaterialButton("确定", MaterialButton::Normal, this);
     ok_btn->setFixedSize(70, 32);
     ok_btn->set_theme_color(
         UISystem::instance().message_action_color(msg_type));
@@ -103,7 +103,7 @@ void MaterialMessageBox::setup_ui(Type type, const QString &title,
     btn_layout->addWidget(ok_btn);
   } else {
     MaterialButton *ok_btn =
-        new MaterialButton("OK", MaterialButton::Normal, this);
+        new MaterialButton("确定", MaterialButton::Normal, this);
     ok_btn->setFixedSize(80, 32);
     ok_btn->set_theme_color(
         UISystem::instance().message_action_color(msg_type));

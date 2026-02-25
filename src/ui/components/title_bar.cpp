@@ -10,8 +10,6 @@ void TitleBar::init_ui() {
   this->setObjectName("TitleBar");
   auto *layout = new QHBoxLayout(this);
   QMargins margins = layout->contentsMargins();
-  qDebug() << "Left:" << margins.left() << "Top:" << margins.top()
-           << "Right:" << margins.right() << "Bottom:" << margins.bottom();
 
   // 标题
   QLabel *title = new QLabel("爆炸毁伤算法管理系统", this);

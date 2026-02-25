@@ -68,8 +68,35 @@ QLabel#MessageBoxText {
     color: ${TEXT_SECONDARY};
 }
 
+QMenu#MaterialMenu {
+    background: #FFFFFF;
+    border: 1px solid ${LINE};
+    border-radius: 8px;
+    padding: 6px;
+    outline: none;
+}
+
+QMenu#MaterialMenu::item {
+    background: transparent;
+    color: ${TEXT_PRIMARY};
+    padding: 7px 14px;
+    border-radius: 6px;
+}
+
+QMenu#MaterialMenu::item:selected {
+    background: #DCE8FF;
+    color: ${TEXT_PRIMARY};
+}
+
+QMenu#MaterialMenu::separator {
+    height: 1px;
+    background: ${LINE};
+    margin: 4px 8px;
+}
+
 #LoginDialogContainer,
-#AlgoEditDialogContainer {
+#AlgoEditDialogContainer,
+#AlgoRunDialogContainer {
     background-color: ${SURFACE};
     border-radius: 12px;
 }
@@ -131,14 +158,72 @@ QTreeView#FunctionCategoryTree::item:selected {
 QTableView#FunctionAlgoTable {
     background: ${SURFACE};
     border-radius: 8px;
-    border: none;
+    border: 1px solid ${LINE};
     selection-background-color: #D3E3FD;
     selection-color: ${TEXT_PRIMARY};
     gridline-color: ${LINE};
 }
 
 QTableView#FunctionAlgoTable::item {
-    padding: 6px;
+    padding: 7px 8px;
+}
+
+QTableView#FunctionAlgoTable::item:selected {
+    background: #DCE8FF;
+    color: ${TEXT_PRIMARY};
+}
+
+QTableView#FunctionAlgoTable QHeaderView::section {
+    background: #F8FAFD;
+    color: ${TEXT_SECONDARY};
+    border: none;
+    border-bottom: 1px solid ${LINE};
+    padding: 7px 8px;
+    font-size: 10.5pt;
+    font-weight: 600;
+}
+
+#FunctionRunnerPanel {
+    background: #F8FAFE;
+    border: 1px solid #E2E8F2;
+    border-radius: 12px;
+}
+
+QLabel#FunctionRunnerTitle {
+    font-size: 16pt;
+    font-weight: 700;
+    color: ${TEXT_PRIMARY};
+}
+
+QLabel#FunctionRunnerAlgo {
+    font-size: 12pt;
+    font-weight: 600;
+    color: ${TEXT_PRIMARY};
+}
+
+QScrollArea#FunctionRunnerParamScroll {
+    border: 1px solid ${LINE};
+    border-radius: 8px;
+    background: ${SURFACE};
+}
+
+QWidget#FunctionRunnerParamForm {
+    background: transparent;
+}
+
+QLabel#FunctionParamLabel {
+    font-size: 11pt;
+    font-weight: 600;
+    color: ${TEXT_PRIMARY};
+}
+
+QTextEdit#FunctionRunnerResult {
+    background: ${SURFACE};
+    border: 1px solid ${LINE};
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 10.5pt;
+    font-family: "Consolas";
 }
 
 QLineEdit {
@@ -150,9 +235,9 @@ QLineEdit {
 }
 
 QLabel {
-    font-size: 30pt;
-    font-weight: bold;
-    color: #1f1f1f;
+    font-size: 11pt;
+    font-weight: 400;
+    color: ${TEXT_PRIMARY};
 }
 
 #LoginDialog {
