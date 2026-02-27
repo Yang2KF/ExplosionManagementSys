@@ -6,7 +6,7 @@
 
 AlgorithmTableModel::AlgorithmTableModel(QObject *parent)
     : QAbstractTableModel(parent) {
-  headers_ << "算法ID" << "算法名称" << "调用标识" << "创建时间";
+  headers_ << "编号" << "算法名称" << "调用标识" << "创建时间";
 }
 
 int AlgorithmTableModel::rowCount(const QModelIndex &parent) const {
@@ -42,7 +42,7 @@ QVariant AlgorithmTableModel::data(const QModelIndex &index, int role) const {
   if (role == Qt::DisplayRole) {
     switch (index.column()) {
     case 0:
-      return item.id;
+      return item.displayId;
     case 1:
       return item.name;
     case 2:
@@ -72,11 +72,12 @@ void AlgorithmTableModel::load_data(const QString &category_id) {
   QSqlQuery query(db);
 
   QString sql =
-      "SELECT ALGID, ALGNAME, COMMENTS, CALLID, CREATED_AT, CLSID, SRC "
+      "SELECT ID, ALGID, ALGNAME, COMMENTS, CALLID, CREATED_AT, CLSID, SRC "
       "FROM algorithms";
   if (!category_id.isEmpty()) {
     sql += " WHERE CLSID = :cid";
   }
+  sql += " ORDER BY ID ASC";
   query.prepare(sql);
 
   if (!category_id.isEmpty()) {
@@ -86,6 +87,7 @@ void AlgorithmTableModel::load_data(const QString &category_id) {
   if (query.exec()) {
     while (query.next()) {
       AlgorithmInfo info;
+      info.displayId = query.value("ID").toLongLong();
       info.id = query.value("ALGID").toString();
       info.name = query.value("ALGNAME").toString();
       info.description = query.value("COMMENTS").toString();
@@ -109,13 +111,14 @@ void AlgorithmTableModel::search_data(const QString &keyword) {
   QSqlDatabase db = DBManager::instance().database();
   QSqlQuery query(db);
   query.prepare(
-      "SELECT ALGID, ALGNAME, COMMENTS, CALLID, CREATED_AT, CLSID, SRC FROM "
-      "algorithms WHERE ALGNAME LIKE :key");
+      "SELECT ID, ALGID, ALGNAME, COMMENTS, CALLID, CREATED_AT, CLSID, SRC FROM "
+      "algorithms WHERE ALGNAME LIKE :key ORDER BY ID ASC");
   query.bindValue(":key", "%" + keyword + "%");
 
   if (query.exec()) {
     while (query.next()) {
       AlgorithmInfo info;
+      info.displayId = query.value("ID").toLongLong();
       info.id = query.value("ALGID").toString();
       info.name = query.value("ALGNAME").toString();
       info.description = query.value("COMMENTS").toString();

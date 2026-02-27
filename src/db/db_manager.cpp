@@ -82,6 +82,7 @@ bool DBManager::create_tables() {
 
   success = query.exec(
       "CREATE TABLE IF NOT EXISTS algorithms ("
+      "ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '前端可读编号', "
       "ALGID VARCHAR(36) NOT NULL PRIMARY KEY COMMENT '算法ID', "
       "ALGNAME VARCHAR(255) DEFAULT NULL COMMENT '算法名称', "
       "COMMENTS TEXT COMMENT '备注说明', "
@@ -92,7 +93,8 @@ bool DBManager::create_tables() {
       "SRC_TYPE VARCHAR(3) DEFAULT NULL COMMENT '1:dll, 2:jar/py', "
       "ALGIDENTIFIER VARCHAR(30) DEFAULT NULL COMMENT '算法标识符', "
       "CLSID VARCHAR(36) DEFAULT NULL COMMENT '类别ID(关联alg_category)', "
-      "CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间' "
+      "CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间', "
+      "UNIQUE KEY uk_algorithms_readable_id (ID) "
       ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
   if (!success) {
     qDebug() << "创建 algorithms 表失败：" << query.lastError().text();
@@ -101,6 +103,7 @@ bool DBManager::create_tables() {
 
   success = query.exec(
       "CREATE TABLE IF NOT EXISTS alg_inparams ("
+      "ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '前端可读编号', "
       "UUID VARCHAR(36) NOT NULL PRIMARY KEY COMMENT '参数唯一ID', "
       "ALGID VARCHAR(36) NOT NULL COMMENT '所属算法ID', "
       "P_IDENTIFIER VARCHAR(50) DEFAULT NULL COMMENT '参数标识符', "
@@ -116,7 +119,8 @@ bool DBManager::create_tables() {
       "VALIDATOR VARCHAR(100) DEFAULT NULL COMMENT '验证规则', "
       "TOOLTIP VARCHAR(100) DEFAULT NULL COMMENT '提示信息', "
       "COMMENTS VARCHAR(100) DEFAULT NULL COMMENT '备注', "
-      "SHOWORDER INT DEFAULT 0 COMMENT '显示顺序' "
+      "SHOWORDER INT DEFAULT 0 COMMENT '显示顺序', "
+      "UNIQUE KEY uk_alg_inparams_readable_id (ID) "
       ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
   if (!success) {
     qDebug() << "创建 alg_inparams 表失败：" << query.lastError().text();

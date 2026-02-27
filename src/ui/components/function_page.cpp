@@ -28,9 +28,9 @@ void FunctionPage::init_ui() {
   table_model_->load_data(QString());
   algo_table_->setModel(table_model_);
 
-  algo_table_->setColumnWidth(0, 220);
-  algo_table_->setColumnWidth(1, 150);
-  algo_table_->setColumnWidth(2, 150);
+  algo_table_->setColumnWidth(0, 80);
+  algo_table_->setColumnWidth(1, 220);
+  algo_table_->setColumnWidth(2, 180);
 
   init_connections();
 }
@@ -235,14 +235,14 @@ void FunctionPage::delete_algorithm_by_row(int row) {
     return;
   }
 
-  const QModelIndex index = table_model_->index(row, 0);
-  if (!index.isValid()) {
-    MaterialMessageBox::warning(this, "提示", "请先选择要删除的算法。");
+  const AlgorithmInfo info = table_model_->get_item(row);
+  if (info.id.isEmpty()) {
+    MaterialMessageBox::warning(this, "提示", "无效的算法数据。");
     return;
   }
 
-  const QString algo_id = index.siblingAtColumn(0).data().toString();
-  const QString algo_name = index.siblingAtColumn(1).data().toString();
+  const QString algo_id = info.id;
+  const QString algo_name = info.name;
   const int reply = MaterialMessageBox::question(
       this, "确认删除",
       QString("确认删除算法“%1”？此操作不可撤销。").arg(algo_name));

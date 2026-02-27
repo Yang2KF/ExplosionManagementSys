@@ -12,7 +12,7 @@ AlgorithmParamService::fetch_params(const QString &algo_id,
   QSqlDatabase db = DBManager::instance().database();
   QSqlQuery query(db);
   query.prepare(
-      "SELECT UUID, ALGID, P_IDENTIFIER, P_ZHNAME, UNIT, DATATYPE, "
+      "SELECT ID, UUID, ALGID, P_IDENTIFIER, P_ZHNAME, UNIT, DATATYPE, "
       "DEFAULT_VALUE, MIN_VALUE, MAX_VALUE, VALIDATOR, TOOLTIP, REQUIRED, "
       "SHOWORDER "
       "FROM alg_inparams WHERE ALGID = :algid ORDER BY SHOWORDER ASC, "
@@ -28,6 +28,7 @@ AlgorithmParamService::fetch_params(const QString &algo_id,
 
   while (query.next()) {
     AlgorithmParam param;
+    param.displayId = query.value("ID").toLongLong();
     param.id = query.value("UUID").toString();
     param.algoId = query.value("ALGID").toString();
     param.identifier = query.value("P_IDENTIFIER").toString();

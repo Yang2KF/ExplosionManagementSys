@@ -3,9 +3,11 @@
 #include <QDateTime>
 #include <QList>
 #include <QString>
+#include <QtGlobal>
 
 // 算法参数实体
 struct AlgorithmParam {
+  qint64 displayId = 0; // 前端可读编号
   QString id;
   QString algoId;
   QString identifier; // 参数键名(调用时使用)
@@ -23,6 +25,7 @@ struct AlgorithmParam {
 
 // 算法信息实体
 struct AlgorithmInfo {
+  qint64 displayId = 0; // 前端可读编号
   QString id;
   QString categoryId;
   QString name;
