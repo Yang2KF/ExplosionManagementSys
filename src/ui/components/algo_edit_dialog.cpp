@@ -67,9 +67,15 @@ void AlgoEditDialog::init_ui() {
   category_combo_->setFixedHeight(40);
   content_layout->addWidget(category_combo_);
 
+  source_type_combo_ = new QComboBox(this);
+  source_type_combo_->setObjectName("AlgoEditSourceTypeCombo");
+  source_type_combo_->setFixedHeight(40);
+  source_type_combo_->addItem("动态库 DLL", "1");
+  source_type_combo_->addItem("Python 脚本", "2");
+  content_layout->addWidget(source_type_combo_);
+
   QHBoxLayout *path_layout = new QHBoxLayout();
   path_input_ = new MaterialInput(this);
-  path_input_->setPlaceholderText("算法库路径（.dll）");
 
   path_btn_ = new MaterialButton("...", MaterialButton::Normal, this);
   path_btn_->setFixedSize(40, 40);
@@ -111,17 +117,32 @@ void AlgoEditDialog::init_ui() {
       MaterialMessageBox::warning(this, "提示", "请输入算法名称并选择分类。");
       return;
     }
+    if (path_input_->text().trimmed().isEmpty()) {
+      MaterialMessageBox::warning(this, "提示", "请输入算法文件路径。");
+      return;
+    }
+    if (func_input_->text().trimmed().isEmpty()) {
+      MaterialMessageBox::warning(this, "提示", "请输入入口函数名。");
+      return;
+    }
     accept();
   });
 
   connect(path_btn_, &QPushButton::clicked, this, [this]() {
-    QString path = QFileDialog::getOpenFileName(
-        this, "选择算法库文件", QString(),
-        "动态库文件 (*.dll *.so *.dylib)");
+    const bool is_python = source_type_combo_->currentData().toString() == "2";
+    const QString title = is_python ? "选择Python脚本" : "选择动态库文件";
+    const QString filter =
+        is_python ? "Python 脚本 (*.py)" : "动态库文件 (*.dll *.so *.dylib)";
+    QString path = QFileDialog::getOpenFileName(this, title, QString(), filter);
     if (!path.isEmpty()) {
       path_input_->setText(path);
     }
   });
+
+  connect(source_type_combo_, QOverload<int>::of(&QComboBox::currentIndexChanged),
+          this, [this](int) { update_source_type_ui(); });
+
+  update_source_type_ui();
 }
 
 void AlgoEditDialog::load_categories() {
@@ -139,6 +160,7 @@ AlgorithmInfo AlgoEditDialog::get_data() const {
   info.id = current_algo_id_;
   info.name = name_input_->text();
   info.categoryId = category_combo_->currentData().toString();
+  info.sourceType = source_type_combo_->currentData().toString();
   info.filePath = path_input_->text();
   info.funcName = func_input_->text();
   info.description = desc_input_->text();
@@ -152,8 +174,22 @@ void AlgoEditDialog::set_data(const AlgorithmInfo &info) {
   func_input_->setText(info.funcName);
   desc_input_->setText(info.description);
 
+  int source_index = source_type_combo_->findData(info.sourceType);
+  if (source_index == -1) {
+    source_index = 0;
+  }
+  source_type_combo_->setCurrentIndex(source_index);
+  update_source_type_ui();
+
   int index = category_combo_->findData(info.categoryId);
   if (index != -1) {
     category_combo_->setCurrentIndex(index);
   }
+}
+
+void AlgoEditDialog::update_source_type_ui() {
+  const bool is_python = source_type_combo_->currentData().toString() == "2";
+  path_input_->setPlaceholderText(
+      is_python ? "Python脚本路径（.py）" : "算法库路径（.dll）");
+  func_input_->setPlaceholderText(is_python ? "Python函数名" : "导出函数名");
 }

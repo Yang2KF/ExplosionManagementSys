@@ -16,4 +16,10 @@ class AlgorithmRunner {
 public:
   AlgorithmRunResult run(const AlgorithmInfo &algorithm,
                          const QJsonObject &input_params) const;
+
+private:
+  AlgorithmRunResult run_dll(const AlgorithmInfo &algorithm,
+                             const QJsonObject &input_params) const;
+  AlgorithmRunResult run_python(const AlgorithmInfo &algorithm,
+                                const QJsonObject &input_params) const;
 };

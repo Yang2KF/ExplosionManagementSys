@@ -32,8 +32,9 @@ struct AlgorithmInfo {
   QString description;
 
   // 核心调用字段
-  QString filePath; // DLL路径
-  QString funcName; // 导出函数名
+  QString filePath;   // 算法文件路径（DLL/Python）
+  QString sourceType; // 执行类型（"1"=DLL, "2"=Python）
+  QString funcName;   // 入口函数名
 
   QDateTime createdAt;
 

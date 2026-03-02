@@ -89,8 +89,8 @@ bool DBManager::create_tables() {
       "HELPURL TEXT COMMENT '帮助链接', "
       "CALLURL TEXT COMMENT '调用链接', "
       "CALLID VARCHAR(200) DEFAULT NULL COMMENT '调用函数的导出名', "
-      "SRC VARCHAR(255) DEFAULT NULL COMMENT '算法文件(dll/jar)路径', "
-      "SRC_TYPE VARCHAR(3) DEFAULT NULL COMMENT '1:dll, 2:jar/py', "
+      "SRC VARCHAR(255) DEFAULT NULL COMMENT '算法文件路径（dll/py）', "
+      "SRC_TYPE VARCHAR(3) DEFAULT NULL COMMENT '1:dll, 2:python', "
       "ALGIDENTIFIER VARCHAR(30) DEFAULT NULL COMMENT '算法标识符', "
       "CLSID VARCHAR(36) DEFAULT NULL COMMENT '类别ID(关联alg_category)', "
       "CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间', "
@@ -157,6 +157,11 @@ bool DBManager::create_tables() {
   if (!ensure_column_exists(
           db, "alg_inparams", "MAX_VALUE",
           "MAX_VALUE VARCHAR(50) DEFAULT NULL COMMENT '最大值'")) {
+    return false;
+  }
+  if (!ensure_column_exists(
+          db, "algorithms", "SRC_TYPE",
+          "SRC_TYPE VARCHAR(3) DEFAULT '1' COMMENT '1:dll, 2:python'")) {
     return false;
   }
 
@@ -287,7 +292,9 @@ void DBManager::seed_data() {
   };
 
   auto add_algo = [&](const QString &clsid, const QString &name,
-                      const QString &desc, const QString &call_id) {
+                      const QString &desc, const QString &call_id,
+                      const QString &src_path = "libs/blast_models.dll",
+                      const QString &src_type = "1") {
     const QString alg_id = QUuid::createUuid().toString(QUuid::WithoutBraces);
     QSqlQuery q(db);
     q.prepare("INSERT INTO algorithms "
@@ -301,8 +308,8 @@ void DBManager::seed_data() {
     q.bindValue(":help_url", "");
     q.bindValue(":call_url", "");
     q.bindValue(":call_id", call_id);
-    q.bindValue(":src", "libs/blast_models.dll");
-    q.bindValue(":src_type", "1");
+    q.bindValue(":src", src_path);
+    q.bindValue(":src_type", src_type);
     q.bindValue(":identifier", call_id);
     q.bindValue(":clsid", clsid);
     q.bindValue(":created_at",
@@ -391,6 +398,32 @@ void DBManager::seed_data() {
             "", 1, "kg");
   add_param(point_source_id, "distance_m", "距离", "double", "50.0", true,
             "0.1", "", 2, "m");
+
+  const QString py_script = "examples/python_models/blast_models_py.py";
+
+  const QString scaled_distance_py_id =
+      add_algo("CAT_AIR", "当量距离（Python）", "按Hopkinson-Cranz计算当量距离",
+               "calc_scaled_distance_py", py_script, "2");
+  add_param(scaled_distance_py_id, "charge_kg", "装药量", "double", "8.0", true,
+            "0.001", "", 1, "kg");
+  add_param(scaled_distance_py_id, "distance_m", "距离", "double", "25.0", true,
+            "0.1", "", 2, "m");
+
+  const QString fragment_energy_py_id =
+      add_algo("CAT_VEL", "破片动能（Python）", "按质量和速度估算破片动能",
+               "calc_fragment_energy_py", py_script, "2");
+  add_param(fragment_energy_py_id, "fragment_mass_kg", "破片质量", "double",
+            "0.02", true, "0.0001", "", 1, "kg");
+  add_param(fragment_energy_py_id, "velocity_m_s", "速度", "double", "1200.0",
+            true, "0.1", "", 2, "m/s");
+
+  const QString thermal_dose_py_id =
+      add_algo("CAT_FIREBALL", "热剂量（Python）", "按热流和持续时间估算热剂量",
+               "calc_thermal_dose_py", py_script, "2");
+  add_param(thermal_dose_py_id, "heat_flux_kw_m2", "热流密度", "double", "35.0",
+            true, "0.001", "", 1, "kW/m2");
+  add_param(thermal_dose_py_id, "duration_s", "持续时间", "double", "4.0", true,
+            "0.001", "", 2, "s");
 
   query.exec("SELECT COUNT(*) FROM users");
   if (query.next() && query.value(0).toInt() == 0) {

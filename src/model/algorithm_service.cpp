@@ -10,6 +10,9 @@ bool AlgorithmService::create_algorithm(AlgorithmInfo info,
   if (info.id.isEmpty()) {
     info.id = QUuid::createUuid().toString(QUuid::WithoutBraces);
   }
+  if (info.sourceType.trimmed().isEmpty()) {
+    info.sourceType = "1";
+  }
 
   QSqlDatabase db = DBManager::instance().database();
   QSqlQuery query(db);
@@ -24,7 +27,7 @@ bool AlgorithmService::create_algorithm(AlgorithmInfo info,
   query.bindValue(":call_id", info.funcName);
   query.bindValue(":src", info.filePath);
   query.bindValue(":clsid", info.categoryId);
-  query.bindValue(":src_type", "1");
+  query.bindValue(":src_type", info.sourceType);
   query.bindValue(":created_at", QDateTime::currentDateTime());
 
   if (!query.exec()) {
@@ -41,11 +44,14 @@ bool AlgorithmService::update_algorithm(const AlgorithmInfo &info,
   QSqlDatabase db = DBManager::instance().database();
   QSqlQuery query(db);
   query.prepare("UPDATE algorithms SET ALGNAME=:name, COMMENTS=:comments, "
-                "CALLID=:call_id, SRC=:src, CLSID=:clsid WHERE ALGID=:id");
+                "CALLID=:call_id, SRC=:src, SRC_TYPE=:src_type, CLSID=:clsid "
+                "WHERE ALGID=:id");
   query.bindValue(":name", info.name);
   query.bindValue(":comments", info.description);
   query.bindValue(":call_id", info.funcName);
   query.bindValue(":src", info.filePath);
+  query.bindValue(":src_type",
+                  info.sourceType.trimmed().isEmpty() ? "1" : info.sourceType);
   query.bindValue(":clsid", info.categoryId);
   query.bindValue(":id", info.id);
 

@@ -28,10 +28,12 @@ protected:
 private:
   void init_ui();
   void load_categories(); // 加载分类到下拉框
+  void update_source_type_ui();
 
   // UI 组件
   MaterialInput *name_input_;
   QComboBox *category_combo_;
+  QComboBox *source_type_combo_;
   MaterialInput *path_input_;
   MaterialButton *path_btn_; // 选择文件按钮
   MaterialInput *func_input_;

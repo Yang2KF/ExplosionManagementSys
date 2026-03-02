@@ -2,6 +2,7 @@
 #include "m_message_box.h"
 #include "mask_widget.h"
 #include "ui_system.h"
+#include <QFileInfo>
 #include <QFrame>
 #include <QGraphicsDropShadowEffect>
 #include <QHBoxLayout>
@@ -73,8 +74,13 @@ void AlgorithmRunDialog::init_ui() {
   algo_label_ = new QLabel(panel);
   algo_label_->setObjectName("FunctionRunnerAlgo");
   algo_label_->setWordWrap(true);
-  algo_label_->setText(QString("%1\n入口函数：%2")
-                           .arg(algorithm_.name, algorithm_.funcName));
+  const QString runtime_type =
+      (algorithm_.sourceType.trimmed() == "2" ||
+       QFileInfo(algorithm_.filePath.trimmed()).suffix().toLower() == "py")
+          ? "Python"
+          : "DLL";
+  algo_label_->setText(QString("%1\n运行类型：%2\n入口函数：%3")
+                           .arg(algorithm_.name, runtime_type, algorithm_.funcName));
 
   param_scroll_area_ = new QScrollArea(panel);
   param_scroll_area_->setObjectName("FunctionRunnerParamScroll");

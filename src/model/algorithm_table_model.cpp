@@ -72,7 +72,8 @@ void AlgorithmTableModel::load_data(const QString &category_id) {
   QSqlQuery query(db);
 
   QString sql =
-      "SELECT ID, ALGID, ALGNAME, COMMENTS, CALLID, CREATED_AT, CLSID, SRC "
+      "SELECT ID, ALGID, ALGNAME, COMMENTS, CALLID, CREATED_AT, CLSID, SRC, "
+      "SRC_TYPE "
       "FROM algorithms";
   if (!category_id.isEmpty()) {
     sql += " WHERE CLSID = :cid";
@@ -95,6 +96,7 @@ void AlgorithmTableModel::load_data(const QString &category_id) {
       info.createdAt = query.value("CREATED_AT").toDateTime();
       info.categoryId = query.value("CLSID").toString();
       info.filePath = query.value("SRC").toString();
+      info.sourceType = query.value("SRC_TYPE").toString();
       data_list_.append(info);
     }
   } else {
@@ -111,8 +113,8 @@ void AlgorithmTableModel::search_data(const QString &keyword) {
   QSqlDatabase db = DBManager::instance().database();
   QSqlQuery query(db);
   query.prepare(
-      "SELECT ID, ALGID, ALGNAME, COMMENTS, CALLID, CREATED_AT, CLSID, SRC FROM "
-      "algorithms WHERE ALGNAME LIKE :key ORDER BY ID ASC");
+      "SELECT ID, ALGID, ALGNAME, COMMENTS, CALLID, CREATED_AT, CLSID, SRC, "
+      "SRC_TYPE FROM algorithms WHERE ALGNAME LIKE :key ORDER BY ID ASC");
   query.bindValue(":key", "%" + keyword + "%");
 
   if (query.exec()) {
@@ -126,6 +128,7 @@ void AlgorithmTableModel::search_data(const QString &keyword) {
       info.createdAt = query.value("CREATED_AT").toDateTime();
       info.categoryId = query.value("CLSID").toString();
       info.filePath = query.value("SRC").toString();
+      info.sourceType = query.value("SRC_TYPE").toString();
       data_list_.append(info);
     }
   }
