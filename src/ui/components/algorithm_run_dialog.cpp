@@ -79,8 +79,9 @@ void AlgorithmRunDialog::init_ui() {
        QFileInfo(algorithm_.filePath.trimmed()).suffix().toLower() == "py")
           ? "Python"
           : "DLL";
-  algo_label_->setText(QString("%1\n运行类型：%2\n入口函数：%3")
-                           .arg(algorithm_.name, runtime_type, algorithm_.funcName));
+  algo_label_->setText(
+      QString("%1\n运行类型：%2\n入口函数：%3")
+          .arg(algorithm_.name, runtime_type, algorithm_.funcName));
 
   param_scroll_area_ = new QScrollArea(panel);
   param_scroll_area_->setObjectName("FunctionRunnerParamScroll");
@@ -129,8 +130,7 @@ void AlgorithmRunDialog::init_ui() {
   connect(close_btn_, &QPushButton::clicked, this, &QDialog::reject);
   connect(reset_btn_, &QPushButton::clicked, this,
           [this]() { reset_param_inputs(); });
-  connect(run_btn_, &QPushButton::clicked, this,
-          [this]() { run_algorithm(); });
+  connect(run_btn_, &QPushButton::clicked, this, [this]() { run_algorithm(); });
 }
 
 void AlgorithmRunDialog::load_params() {
@@ -145,16 +145,20 @@ void AlgorithmRunDialog::load_params() {
 }
 
 void AlgorithmRunDialog::rebuild_param_form() {
-  while (QLayoutItem *item = param_form_layout_->takeAt(0)) {
-    if (item->widget()) {
-      item->widget()->deleteLater();
+  while (param_form_layout_->count() > 0) {
+    QLayoutItem *item = param_form_layout_->takeAt(0);
+    if (item) {
+      if (QWidget *w = item->widget()) {
+        w->deleteLater();
+      }
+      delete item;
     }
-    delete item;
   }
   param_inputs_.clear();
 
   if (params_.isEmpty()) {
-    QLabel *empty_label = new QLabel("该算法尚未配置参数。", param_form_widget_);
+    QLabel *empty_label =
+        new QLabel("该算法尚未配置参数。", param_form_widget_);
     empty_label->setWordWrap(true);
     param_form_layout_->addRow(empty_label);
     return;
@@ -201,10 +205,11 @@ bool AlgorithmRunDialog::collect_input_json(QJsonObject *input_json,
       continue;
     }
 
-    const QString display =
-        param.name.isEmpty() ? param.identifier.trimmed() : param.name.trimmed();
-    const QString param_key =
-        param.identifier.isEmpty() ? param.name.trimmed() : param.identifier.trimmed();
+    const QString display = param.name.isEmpty() ? param.identifier.trimmed()
+                                                 : param.name.trimmed();
+    const QString param_key = param.identifier.isEmpty()
+                                  ? param.name.trimmed()
+                                  : param.identifier.trimmed();
     if (param_key.isEmpty()) {
       continue;
     }
@@ -239,8 +244,8 @@ bool AlgorithmRunDialog::collect_input_json(QJsonObject *input_json,
         const double min_value = param.minValue.toDouble(&min_ok);
         if (min_ok && value < min_value) {
           if (error_message) {
-            *error_message =
-                QString("参数“%1”应大于等于 %2。").arg(display, param.minValue.trimmed());
+            *error_message = QString("参数“%1”应大于等于 %2。")
+                                 .arg(display, param.minValue.trimmed());
           }
           return false;
         }
@@ -250,8 +255,8 @@ bool AlgorithmRunDialog::collect_input_json(QJsonObject *input_json,
         const double max_value = param.maxValue.toDouble(&max_ok);
         if (max_ok && value > max_value) {
           if (error_message) {
-            *error_message =
-                QString("参数“%1”应小于等于 %2。").arg(display, param.maxValue.trimmed());
+            *error_message = QString("参数“%1”应小于等于 %2。")
+                                 .arg(display, param.maxValue.trimmed());
           }
           return false;
         }
@@ -276,8 +281,8 @@ bool AlgorithmRunDialog::collect_input_json(QJsonObject *input_json,
         const double min_value = param.minValue.toDouble(&min_ok);
         if (min_ok && value < min_value) {
           if (error_message) {
-            *error_message =
-                QString("参数“%1”应大于等于 %2。").arg(display, param.minValue.trimmed());
+            *error_message = QString("参数“%1”应大于等于 %2。")
+                                 .arg(display, param.minValue.trimmed());
           }
           return false;
         }
@@ -287,8 +292,8 @@ bool AlgorithmRunDialog::collect_input_json(QJsonObject *input_json,
         const double max_value = param.maxValue.toDouble(&max_ok);
         if (max_ok && value > max_value) {
           if (error_message) {
-            *error_message =
-                QString("参数“%1”应小于等于 %2。").arg(display, param.maxValue.trimmed());
+            *error_message = QString("参数“%1”应小于等于 %2。")
+                                 .arg(display, param.maxValue.trimmed());
           }
           return false;
         }
@@ -304,7 +309,8 @@ bool AlgorithmRunDialog::collect_input_json(QJsonObject *input_json,
       if (!ok) {
         if (error_message) {
           *error_message =
-              QString("参数“%1”必须是布尔值（true/false/1/0/是/否）。").arg(display);
+              QString("参数“%1”必须是布尔值（true/false/1/0/是/否）。")
+                  .arg(display);
         }
         return false;
       }
@@ -326,10 +332,12 @@ void AlgorithmRunDialog::run_algorithm() {
     return;
   }
 
-  const AlgorithmRunResult run_result = algorithm_runner_.run(algorithm_, input_json);
+  const AlgorithmRunResult run_result =
+      algorithm_runner_.run(algorithm_, input_json);
 
   QString output_text;
-  output_text += QString("状态：%1\n").arg(run_result.success ? "成功" : "失败");
+  output_text +=
+      QString("状态：%1\n").arg(run_result.success ? "成功" : "失败");
   output_text += QString("耗时：%1 ms\n").arg(run_result.elapsedMs);
   output_text += QString("消息：%1\n").arg(run_result.message);
   output_text += "------------------------------\n";
