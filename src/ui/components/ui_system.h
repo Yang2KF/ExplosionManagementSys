@@ -78,6 +78,7 @@ public:
   QIcon close_icon() const { return QIcon{":/icons/close_icon_line"}; }
   QIcon user_icon() const { return QIcon{":/icons/user_icon_line"}; }
   QIcon function_icon() const { return QIcon{":/icons/function_icon_line"}; }
+  QIcon code_icon() const { return QIcon{":/icons/code_icon_line"}; }
 
   QIcon home_icon_checked() const { return QIcon{":/icons/home_icon_fill"}; }
 
@@ -90,6 +91,7 @@ public:
   QIcon settings_icon_checked() const {
     return QIcon{":/icons/settings_icon_fill"};
   }
+  QIcon code_icon_checked() const { return QIcon{":/icons/code_icon_fill"}; }
 
 private:
   UISystem() = default;

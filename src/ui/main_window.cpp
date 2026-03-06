@@ -1,4 +1,4 @@
-#include "main_window.h"
+﻿#include "main_window.h"
 #include "components/algorithm_run_tab.h"
 #include "components/function_page.h"
 #include "components/mask_widget.h"
@@ -64,11 +64,12 @@ void MainWindow::setup_header() {
 
 void MainWindow::setup_tabs() {
   tab_bar_ = new MainTabBar(title_bar_);
-  tab_bar_->addTab(QStringLiteral("算法列表"),
-                   UISystem::instance().function_icon(),
-                   UISystem::instance().function_icon_checked());
+  tab_bar_->addTab(QStringLiteral("算法列表"), UISystem::instance().function_icon(),
+                   UISystem::instance().function_icon_checked(), false);
 
   connect(tab_bar_, &MainTabBar::tabRequested, this, &MainWindow::onTabRequested);
+  connect(tab_bar_, &MainTabBar::tabCloseRequested, this,
+          &MainWindow::onTabCloseRequested);
   title_bar_->setCenterWidget(tab_bar_);
 }
 
@@ -111,6 +112,53 @@ void MainWindow::onTabRequested(int id) {
   current_page_index_ = id;
 }
 
+void MainWindow::onTabCloseRequested(int id) {
+  if (!tab_bar_ || !pages_stack_) {
+    return;
+  }
+  if (id <= 0 || id >= pages_stack_->count()) {
+    return;
+  }
+
+  QWidget *page = pages_stack_->widget(id);
+  pages_stack_->removeWidget(page);
+  if (page) {
+    page->deleteLater();
+  }
+  tab_bar_->removeTab(id);
+
+  QString removed_key;
+  for (auto it = run_tab_indexes_.begin(); it != run_tab_indexes_.end(); ++it) {
+    if (it.value() == id) {
+      removed_key = it.key();
+      break;
+    }
+  }
+  if (!removed_key.isEmpty()) {
+    run_tab_indexes_.remove(removed_key);
+  }
+  for (auto it = run_tab_indexes_.begin(); it != run_tab_indexes_.end(); ++it) {
+    if (it.value() > id) {
+      it.value() = it.value() - 1;
+    }
+  }
+
+  int target_index = current_page_index_;
+  if (current_page_index_ == id) {
+    target_index = qMax(0, id - 1);
+  } else if (current_page_index_ > id) {
+    target_index = current_page_index_ - 1;
+  }
+
+  if (target_index >= pages_stack_->count()) {
+    target_index = pages_stack_->count() - 1;
+  }
+
+  current_page_index_ = qMax(0, target_index);
+  pages_stack_->setCurrentIndex(current_page_index_);
+  tab_bar_->setCurrentIndex(current_page_index_);
+}
+
 void MainWindow::open_run_tab(const AlgorithmInfo &info) {
   if (!tab_bar_ || !pages_stack_) {
     return;
@@ -127,8 +175,8 @@ void MainWindow::open_run_tab(const AlgorithmInfo &info) {
   } else {
     AlgorithmRunTab *run_tab = new AlgorithmRunTab(info, pages_stack_);
     const int stack_index = pages_stack_->addWidget(run_tab);
-    tab_bar_->addTab(run_tab_title(info), UISystem::instance().function_icon(),
-                     UISystem::instance().function_icon_checked());
+    tab_bar_->addTab(run_tab_title(info), UISystem::instance().code_icon(),
+                     UISystem::instance().code_icon_checked(), true);
     index = stack_index;
     run_tab_indexes_.insert(key, index);
   }

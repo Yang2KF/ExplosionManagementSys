@@ -18,6 +18,7 @@ public:
 
 private slots:
   void onTabRequested(int id);
+  void onTabCloseRequested(int id);
   void open_run_tab(const AlgorithmInfo &info);
 
 private:

@@ -22,6 +22,9 @@
         <file alias="function_icon_line">../images/function-line.svg</file>
     </qresource>
     <qresource prefix="/icons">
+        <file alias="code_icon_line">../images/code-line.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
         <file alias="user_icon_line">../images/user-line.svg</file>
     </qresource>
     
@@ -37,8 +40,14 @@
     <qresource prefix="/icons">
         <file alias="function_icon_fill">../images/function-fill.svg</file>
     </qresource>
+    <qresource prefix="/icons">
+        <file alias="code_icon_fill">../images/code-fill.svg</file>
+    </qresource>
 
     <qresource prefix="/styles">
         <file alias="style">../styles/style.qss</file>
+    </qresource>
+    <qresource prefix="/fonts">
+        <file alias="inter_variable">../fonts/Inter-Variable.ttf</file>
     </qresource>
 </RCC>

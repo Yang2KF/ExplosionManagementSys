@@ -1,5 +1,5 @@
 QWidget {
-    font-family: "Microsoft YaHei";
+    font-family: "Inter", "Microsoft YaHei";
     font-size: 11pt;
     color: ${TEXT_PRIMARY};
     outline: none;
