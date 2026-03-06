@@ -1,12 +1,8 @@
-#include "main_window.h"
+﻿#include "main_window.h"
+#include "components/algorithm_run_tab.h"
 #include "components/function_page.h"
-#include "components/home_page.h"
-#include "components/information_page.h"
-#include "components/login_dialog.h"
 #include "components/mask_widget.h"
-#include "components/setting_page.h"
 #include "components/ui_system.h"
-#include "components/user_page.h"
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -16,9 +12,9 @@ MainWindow::MainWindow(QWidget *parent) : FramelessWidget(parent) {
   resize(1024, 768);
 
   init_ui();
-  pages_stack_->setCurrentIndex(Page_Home);
-  tab_bar_->setCurrentIndex(Page_Home);
-  current_page_index_ = Page_Home;
+  pages_stack_->setCurrentIndex(0);
+  tab_bar_->setCurrentIndex(0);
+  current_page_index_ = 0;
 }
 
 void MainWindow::init_ui() {
@@ -68,19 +64,9 @@ void MainWindow::setup_header() {
 
 void MainWindow::setup_tabs() {
   tab_bar_ = new MainTabBar(title_bar_);
-  tab_bar_->addTab(QStringLiteral("\u7528\u6237"), UISystem::instance().user_icon(),
-                   UISystem::instance().user_icon());
-  tab_bar_->addTab(QStringLiteral("\u4e3b\u9875"), UISystem::instance().home_icon(),
-                   UISystem::instance().home_icon_checked());
-  tab_bar_->addTab(QStringLiteral("\u7b97\u6cd5"),
+  tab_bar_->addTab(QStringLiteral("\u7b97\u6cd5\u5217\u8868"),
                    UISystem::instance().function_icon(),
                    UISystem::instance().function_icon_checked());
-  tab_bar_->addTab(QStringLiteral("\u8bbe\u7f6e"),
-                   UISystem::instance().settings_icon(),
-                   UISystem::instance().settings_icon_checked());
-  tab_bar_->addTab(QStringLiteral("\u5e2e\u52a9"),
-                   UISystem::instance().information_icon(),
-                   UISystem::instance().information_icon_checked());
 
   connect(tab_bar_, &MainTabBar::tabRequested, this, &MainWindow::onTabRequested);
   title_bar_->setCenterWidget(tab_bar_);
@@ -92,12 +78,11 @@ void MainWindow::setup_content() {
   pages_stack_->setOrientation(SlideStackedWidget::Orientation::Horizontal);
   pages_stack_->setSlideDuration(220);
 
-  pages_stack_->insertWidget(Page_User, new UserPage(this));
-  pages_stack_->insertWidget(Page_Home, new HomePage(this));
-  pages_stack_->insertWidget(Page_Function, new FunctionPage(this));
-  pages_stack_->insertWidget(Page_Setting, new SettingPage(this));
-  pages_stack_->insertWidget(Page_Info, new InformationPage(this));
+  function_page_ = new FunctionPage(this);
+  connect(function_page_, &FunctionPage::requestRunTab, this,
+          &MainWindow::open_run_tab);
 
+  pages_stack_->addWidget(function_page_);
   content_layout_->addWidget(pages_stack_, 1);
 }
 
@@ -121,16 +106,51 @@ void MainWindow::onTabRequested(int id) {
     return;
   }
 
-  if (id == Page_User && !is_logged_) {
-    LoginDialog loginDlg(this);
-    if (loginDlg.exec() != QDialog::Accepted) {
-      tab_bar_->setCurrentIndex(current_page_index_);
-      return;
-    }
-    is_logged_ = true;
-  }
-
   tab_bar_->setCurrentIndex(id);
   pages_stack_->slideToIndex(id);
   current_page_index_ = id;
+}
+
+void MainWindow::open_run_tab(const AlgorithmInfo &info) {
+  if (!tab_bar_ || !pages_stack_) {
+    return;
+  }
+
+  const QString key = run_tab_key(info);
+  if (key.isEmpty()) {
+    return;
+  }
+
+  int index = 0;
+  if (run_tab_indexes_.contains(key)) {
+    index = run_tab_indexes_.value(key);
+  } else {
+    AlgorithmRunTab *run_tab = new AlgorithmRunTab(info, pages_stack_);
+    const int stack_index = pages_stack_->addWidget(run_tab);
+    tab_bar_->addTab(run_tab_title(info), UISystem::instance().function_icon(),
+                     UISystem::instance().function_icon_checked());
+    index = stack_index;
+    run_tab_indexes_.insert(key, index);
+  }
+
+  onTabRequested(index);
+}
+
+QString MainWindow::run_tab_key(const AlgorithmInfo &info) const {
+  if (!info.id.trimmed().isEmpty()) {
+    return info.id.trimmed();
+  }
+  return info.name.trimmed() + "|" + info.filePath.trimmed() + "|" +
+         info.funcName.trimmed();
+}
+
+QString MainWindow::run_tab_title(const AlgorithmInfo &info) const {
+  QString name = info.name.trimmed();
+  if (name.isEmpty()) {
+    name = info.funcName.trimmed();
+  }
+  if (name.size() > 16) {
+    name = name.left(16) + "...";
+  }
+  return QStringLiteral("\u8fd0\u884c: ") + name;
 }

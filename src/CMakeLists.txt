@@ -1,10 +1,12 @@
 file(GLOB_RECURSE MODEL_SRCS CONFIGURE_DEPENDS
     "model/*.cpp" 
     "db/*.cpp"
+    "service/*.cpp"
 )
 file(GLOB_RECURSE MODEL_HEADERS CONFIGURE_DEPENDS
     "model/*.h" 
     "db/*.h"       
+    "service/*.h"
     "entities/*.h"
 )
 

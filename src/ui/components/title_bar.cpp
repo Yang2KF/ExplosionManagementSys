@@ -7,11 +7,11 @@ TitleBar::TitleBar(QWidget *parent) : QWidget(parent) { init_ui(); }
 void TitleBar::init_ui() {
   setAttribute(Qt::WA_StyledBackground, true);
   setObjectName("TitleBar");
-  setFixedHeight(52);
+  setFixedHeight(48);
 
   layout_ = new QHBoxLayout(this);
-  layout_->setContentsMargins(12, 6, 8, 6);
-  layout_->setSpacing(8);
+  layout_->setContentsMargins(8, 6, 8, 4);
+  layout_->setSpacing(6);
 
   title_label_ =
       new QLabel(QStringLiteral("\u7206\u70b8\u6bc1\u4f24\u7b97\u6cd5\u7ba1\u7406\u7cfb\u7edf"), this);

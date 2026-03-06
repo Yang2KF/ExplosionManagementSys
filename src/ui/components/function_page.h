@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include "m_button.h"
 #include "m_input.h"
 #include "m_menu.h"
-#include "model/algorithm_service.h"
 #include "model/algorithm_table_model.h"
 #include "model/category_tree_model.h"
+#include "service/algorithm_service.h"
 #include <QHBoxLayout>
 #include <QSplitter>
 #include <QTableView>
@@ -18,6 +18,9 @@ class FunctionPage : public QWidget {
 public:
   explicit FunctionPage(QWidget *parent = nullptr);
 
+signals:
+  void requestRunTab(const AlgorithmInfo &info);
+
 private:
   void init_ui();
   void setup_toolbar();
@@ -28,20 +31,20 @@ private:
   void edit_algorithm_by_row(int row);
   void delete_algorithm_by_row(int row);
 
-  QVBoxLayout *main_layout_;
-  QHBoxLayout *tool_layout_;
-  MaterialInput *search_input_;
-  MaterialButton *add_btn_;
-  MaterialButton *refresh_btn_;
+  QVBoxLayout *main_layout_ = nullptr;
+  QHBoxLayout *tool_layout_ = nullptr;
+  MaterialInput *search_input_ = nullptr;
+  MaterialButton *add_btn_ = nullptr;
+  MaterialButton *refresh_btn_ = nullptr;
 
-  QSplitter *splitter_;
-  QTreeView *category_tree_; // 左侧分类树
+  QSplitter *splitter_ = nullptr;
+  QTreeView *category_tree_ = nullptr;
 
-  QWidget *right_panel_;
-  QVBoxLayout *right_layout_;
-  QTableView *algo_table_; // 右侧算法表
+  QWidget *right_panel_ = nullptr;
+  QVBoxLayout *right_layout_ = nullptr;
+  QTableView *algo_table_ = nullptr;
 
-  CategoryTreeModel *tree_model_;
-  AlgorithmTableModel *table_model_;
+  CategoryTreeModel *tree_model_ = nullptr;
+  AlgorithmTableModel *table_model_ = nullptr;
   AlgorithmService algorithm_service_;
 };

@@ -6,7 +6,7 @@ QWidget {
 }
 
 #ContentContainer {
-    background-color: ${SURFACE};
+    background-color: #F2F3F5;
 }
 
 #MainTabBar {
@@ -14,20 +14,15 @@ QWidget {
     border: none;
 }
 
-#SideBar {
-    background-color: #F5F6F7;
-    border-right: 1px solid ${LINE};
-}
-
 #TitleBar {
-    background-color: ${SURFACE};
-    border-bottom: 1px solid ${LINE};
+    background-color: #E5E7EA;
+    border-bottom: 1px solid #D5D8DC;
 }
 
 #TitleLabel {
     font-size: 11pt;
     font-weight: 600;
-    color: ${TEXT_PRIMARY};
+    color: ${TEXT_SECONDARY};
     padding-right: 6px;
 }
 
@@ -41,9 +36,9 @@ QWidget {
     background-color: ${LINE};
 }
 
-#HomePage, #UserPage, #FunctionPage, #SettingPage, #InformationPage {
-    background-color: ${SURFACE};
-    border-radius: 8px;
+#FunctionPage {
+    background-color: #F2F3F5;
+    border-radius: 0px;
 }
 
 #MessageBoxContainer {
@@ -101,24 +96,9 @@ QMenu#MaterialMenu::separator {
     margin: 4px 8px;
 }
 
-#LoginDialogContainer,
-#AlgoEditDialogContainer,
-#AlgoRunDialogContainer {
+#AlgoEditDialogContainer {
     background-color: ${SURFACE};
     border-radius: 12px;
-}
-
-QLabel#LoginDialogTitle {
-    font-size: 22px;
-    font-weight: 700;
-    color: ${TEXT_PRIMARY};
-}
-
-QLabel#LoginDialogSubtitle {
-    font-size: 14px;
-    font-weight: 400;
-    color: ${TEXT_SECONDARY};
-    margin-bottom: 10px;
 }
 
 QLabel#AlgoEditDialogTitle {
@@ -247,6 +227,3 @@ QLabel {
     color: ${TEXT_PRIMARY};
 }
 
-#LoginDialog {
-    background-color: ${SURFACE};
-}

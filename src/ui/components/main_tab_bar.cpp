@@ -2,9 +2,13 @@
 #include "ui_system.h"
 #include <QEnterEvent>
 #include <QFontMetrics>
+#include <QPalette>
 #include <QPainter>
 
 namespace {
+constexpr auto kContentSurface = "#F2F3F5";
+constexpr auto kTitleSurface = "#E5E7EA";
+constexpr auto kTabHover = "#ECEEF1";
 
 QPixmap tint_icon(const QIcon &icon, const QSize &size, const QColor &color) {
   QPixmap pixmap = icon.pixmap(size);
@@ -27,6 +31,7 @@ MainTabButton::MainTabButton(const QString &title, const QIcon &normal_icon,
       active_icon_(active_icon.isNull() ? normal_icon : active_icon) {
   setCheckable(true);
   setCursor(Qt::PointingHandCursor);
+  setFocusPolicy(Qt::NoFocus);
   setFixedHeight(34);
   setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 }
@@ -48,9 +53,8 @@ void MainTabButton::paintEvent(QPaintEvent *event) {
   painter.setRenderHint(QPainter::SmoothPixmapTransform);
 
   const QColor bg_color =
-      isChecked() ? QColor("#EAF1FF")
-                  : (hovered_ ? UISystem::instance().bg_hover()
-                              : Qt::transparent);
+      isChecked() ? QColor(kContentSurface)
+                  : (hovered_ ? QColor(kTabHover) : Qt::transparent);
   const QColor icon_color =
       isChecked() ? UISystem::instance().icon_active()
                   : UISystem::instance().icon_normal();
@@ -58,10 +62,10 @@ void MainTabButton::paintEvent(QPaintEvent *event) {
       isChecked() ? UISystem::instance().text_primary()
                   : UISystem::instance().text_secondary();
 
-  const QRect body_rect = rect().adjusted(2, 2, -2, -2);
+  const QRect body_rect = rect().adjusted(2, 1, -2, 0);
   painter.setPen(Qt::NoPen);
   painter.setBrush(bg_color);
-  painter.drawRoundedRect(body_rect, 9, 9);
+  painter.drawRoundedRect(body_rect, 8, 8);
 
   const QIcon icon = isChecked() ? active_icon_ : normal_icon_;
   const QSize icon_size(16, 16);
@@ -78,10 +82,11 @@ void MainTabButton::paintEvent(QPaintEvent *event) {
   painter.drawText(text_rect, Qt::AlignVCenter | Qt::AlignLeft, title_);
 
   if (isChecked()) {
-    painter.setBrush(UISystem::instance().bg_primary());
-    painter.drawRoundedRect(QRect(body_rect.left() + 16, body_rect.bottom() - 2,
-                                  body_rect.width() - 32, 2),
-                            1.0, 1.0);
+    // Make selected tab blend into content region.
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(kContentSurface));
+    painter.drawRect(QRect(body_rect.left() + 1, body_rect.bottom() - 1,
+                           body_rect.width() - 2, 2));
   }
 }
 
@@ -101,9 +106,13 @@ MainTabBar::MainTabBar(QWidget *parent) : QWidget(parent) {
   setAttribute(Qt::WA_StyledBackground, true);
   setObjectName("MainTabBar");
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  setAutoFillBackground(true);
+  QPalette palette = this->palette();
+  palette.setColor(QPalette::Window, QColor(kTitleSurface));
+  setPalette(palette);
 
   layout_ = new QHBoxLayout(this);
-  layout_->setContentsMargins(6, 0, 6, 0);
+  layout_->setContentsMargins(6, 1, 6, 0);
   layout_->setSpacing(6);
   layout_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 

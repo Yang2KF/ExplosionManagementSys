@@ -3,7 +3,7 @@
 #include "entities/algorithm_data.h"
 #include "m_button.h"
 #include "m_input.h"
-#include "model/category_service.h"
+#include "service/category_service.h"
 #include <QComboBox>
 #include <QDialog>
 
