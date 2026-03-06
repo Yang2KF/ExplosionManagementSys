@@ -14,7 +14,7 @@ void TitleBar::init_ui() {
   layout_->setSpacing(6);
 
   title_label_ =
-      new QLabel(QStringLiteral("\u7206\u70b8\u6bc1\u4f24\u7b97\u6cd5\u7ba1\u7406\u7cfb\u7edf"), this);
+      new QLabel(QStringLiteral("爆炸毁伤算法管理系统"), this);
   title_label_->setObjectName("TitleLabel");
 
   center_host_ = new QWidget(this);

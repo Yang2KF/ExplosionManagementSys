@@ -1,4 +1,4 @@
-﻿#include "function_page.h"
+#include "function_page.h"
 #include "algo_edit_dialog.h"
 #include "m_message_box.h"
 #include "ui_system.h"
@@ -40,15 +40,15 @@ void FunctionPage::setup_toolbar() {
 
   search_input_ = new MaterialInput(this);
   search_input_->setPlaceholderText(
-      QStringLiteral("\u641c\u7d22\u7b97\u6cd5\u540d\u79f0..."));
+      QStringLiteral("搜索算法名称..."));
   search_input_->setFixedWidth(300);
 
-  add_btn_ = new MaterialButton(QStringLiteral("\u65b0\u589e"),
+  add_btn_ = new MaterialButton(QStringLiteral("新增"),
                                 MaterialButton::Normal, this);
   add_btn_->set_theme_color(UISystem::instance().bg_primary());
   add_btn_->setFixedSize(100, 40);
 
-  refresh_btn_ = new MaterialButton(QStringLiteral("\u5237\u65b0"),
+  refresh_btn_ = new MaterialButton(QStringLiteral("刷新"),
                                     MaterialButton::Normal, this);
   refresh_btn_->setFixedSize(80, 40);
   refresh_btn_->set_theme_color(UISystem::instance().neutral());
@@ -128,12 +128,12 @@ void FunctionPage::init_connections() {
     if (algorithm_service_.create_algorithm(info, &error_message)) {
       table_model_->load_data(QString());
       MaterialMessageBox::information(
-          this, QStringLiteral("\u6210\u529f"),
-          QStringLiteral("\u7b97\u6cd5\u5df2\u65b0\u589e\u3002"));
+          this, QStringLiteral("成功"),
+          QStringLiteral("算法已新增。"));
     } else {
       MaterialMessageBox::error(
-          this, QStringLiteral("\u5931\u8d25"),
-          QStringLiteral("\u6570\u636e\u5e93\u9519\u8bef\uff1a") + error_message);
+          this, QStringLiteral("失败"),
+          QStringLiteral("数据库错误：") + error_message);
     }
   });
 
@@ -183,9 +183,9 @@ void FunctionPage::show_table_context_menu(const QPoint &pos) {
   algo_table_->setCurrentIndex(index);
 
   MaterialMenu menu(this);
-  menu.add_action("run", QStringLiteral("\u8fd0\u884c\u7b97\u6cd5"));
-  menu.add_action("edit", QStringLiteral("\u7f16\u8f91\u7b97\u6cd5"));
-  menu.add_action("delete", QStringLiteral("\u5220\u9664\u7b97\u6cd5"));
+  menu.add_action("run", QStringLiteral("运行算法"));
+  menu.add_action("edit", QStringLiteral("编辑算法"));
+  menu.add_action("delete", QStringLiteral("删除算法"));
   const QString action_id =
       menu.exec_and_get_id(algo_table_->viewport()->mapToGlobal(viewport_pos));
 
@@ -232,8 +232,8 @@ void FunctionPage::edit_algorithm_by_row(int row) {
     table_model_->load_data(QString());
   } else {
     MaterialMessageBox::error(
-        this, QStringLiteral("\u5931\u8d25"),
-        QStringLiteral("\u66f4\u65b0\u5931\u8d25\uff1a") + error_message);
+        this, QStringLiteral("失败"),
+        QStringLiteral("更新失败：") + error_message);
   }
 }
 
@@ -245,16 +245,16 @@ void FunctionPage::delete_algorithm_by_row(int row) {
   const AlgorithmInfo info = table_model_->get_item(row);
   if (info.id.isEmpty()) {
     MaterialMessageBox::warning(
-        this, QStringLiteral("\u63d0\u793a"),
-        QStringLiteral("\u65e0\u6548\u7684\u7b97\u6cd5\u6570\u636e\u3002"));
+        this, QStringLiteral("提示"),
+        QStringLiteral("无效的算法数据。"));
     return;
   }
 
   const QString algo_id = info.id;
   const QString algo_name = info.name;
   const int reply = MaterialMessageBox::question(
-      this, QStringLiteral("\u786e\u8ba4\u5220\u9664"),
-      QStringLiteral("\u786e\u8ba4\u5220\u9664\u7b97\u6cd5\u300c%1\u300d\uff1f\u6b64\u64cd\u4f5c\u4e0d\u53ef\u64a4\u9500\u3002")
+      this, QStringLiteral("确认删除"),
+      QStringLiteral("确认删除算法「%1」？此操作不可撤销。")
           .arg(algo_name));
   if (reply != QDialog::Accepted) {
     return;
@@ -265,7 +265,7 @@ void FunctionPage::delete_algorithm_by_row(int row) {
     table_model_->load_data(QString());
   } else {
     MaterialMessageBox::error(
-        this, QStringLiteral("\u5931\u8d25"),
-        QStringLiteral("\u5220\u9664\u5931\u8d25\uff1a") + error_message);
+        this, QStringLiteral("失败"),
+        QStringLiteral("删除失败：") + error_message);
   }
 }

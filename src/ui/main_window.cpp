@@ -1,4 +1,4 @@
-﻿#include "main_window.h"
+#include "main_window.h"
 #include "components/algorithm_run_tab.h"
 #include "components/function_page.h"
 #include "components/mask_widget.h"
@@ -64,7 +64,7 @@ void MainWindow::setup_header() {
 
 void MainWindow::setup_tabs() {
   tab_bar_ = new MainTabBar(title_bar_);
-  tab_bar_->addTab(QStringLiteral("\u7b97\u6cd5\u5217\u8868"),
+  tab_bar_->addTab(QStringLiteral("算法列表"),
                    UISystem::instance().function_icon(),
                    UISystem::instance().function_icon_checked());
 
@@ -152,5 +152,5 @@ QString MainWindow::run_tab_title(const AlgorithmInfo &info) const {
   if (name.size() > 16) {
     name = name.left(16) + "...";
   }
-  return QStringLiteral("\u8fd0\u884c: ") + name;
+  return QStringLiteral("运行: ") + name;
 }

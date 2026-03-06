@@ -44,7 +44,7 @@ void AlgorithmRunTab::init_ui() {
   left_layout->setContentsMargins(14, 14, 14, 14);
   left_layout->setSpacing(10);
 
-  QLabel *title_label = new QLabel(QStringLiteral("\u7b97\u6cd5\u8fd0\u884c"), left_panel);
+  QLabel *title_label = new QLabel(QStringLiteral("算法运行"), left_panel);
   title_label->setObjectName("FunctionRunnerTitle");
 
   algo_label_ = new QLabel(left_panel);
@@ -58,8 +58,8 @@ void AlgorithmRunTab::init_ui() {
           : QStringLiteral("DLL");
   algo_label_->setText(
       QStringLiteral("%1\n%2: %3\n%4: %5")
-          .arg(algorithm_.name, QStringLiteral("\u8fd0\u884c\u7c7b\u578b"),
-               runtime_type, QStringLiteral("\u5165\u53e3\u51fd\u6570"),
+          .arg(algorithm_.name, QStringLiteral("运行类型"),
+               runtime_type, QStringLiteral("入口函数"),
                algorithm_.funcName));
 
   param_scroll_area_ = new QScrollArea(left_panel);
@@ -78,12 +78,12 @@ void AlgorithmRunTab::init_ui() {
   QHBoxLayout *button_layout = new QHBoxLayout();
   button_layout->addStretch();
 
-  reset_btn_ = new MaterialButton(QStringLiteral("\u91cd\u7f6e"),
+  reset_btn_ = new MaterialButton(QStringLiteral("重置"),
                                   MaterialButton::Normal, left_panel);
   reset_btn_->set_theme_color(UISystem::instance().neutral());
   reset_btn_->setFixedSize(90, 34);
 
-  run_btn_ = new MaterialButton(QStringLiteral("\u8fd0\u884c"),
+  run_btn_ = new MaterialButton(QStringLiteral("运行"),
                                 MaterialButton::Normal, left_panel);
   run_btn_->set_theme_color(UISystem::instance().bg_primary());
   run_btn_->setFixedSize(90, 34);
@@ -103,14 +103,14 @@ void AlgorithmRunTab::init_ui() {
   right_layout->setSpacing(10);
 
   QLabel *result_title =
-      new QLabel(QStringLiteral("\u8fd0\u884c\u7ed3\u679c"), right_panel);
+      new QLabel(QStringLiteral("运行结果"), right_panel);
   result_title->setObjectName("FunctionRunnerTitle");
 
   result_output_ = new QTextEdit(right_panel);
   result_output_->setObjectName("FunctionRunnerResult");
   result_output_->setReadOnly(true);
   result_output_->setPlaceholderText(
-      QStringLiteral("\u8fd0\u884c\u7ed3\u679c\u5c06\u5728\u6b64\u663e\u793a\u3002"));
+      QStringLiteral("运行结果将在此显示。"));
 
   right_layout->addWidget(result_title);
   right_layout->addWidget(result_output_, 1);
@@ -132,7 +132,7 @@ void AlgorithmRunTab::load_params() {
   reset_param_inputs();
 
   if (!error_message.isEmpty()) {
-    result_output_->setPlainText(QStringLiteral("\u52a0\u8f7d\u53c2\u6570\u5b9a\u4e49\u5931\u8d25\uff1a") +
+    result_output_->setPlainText(QStringLiteral("加载参数定义失败：") +
                                  error_message);
   }
 }
@@ -151,7 +151,7 @@ void AlgorithmRunTab::rebuild_param_form() {
 
   if (params_.isEmpty()) {
     QLabel *empty_label = new QLabel(
-        QStringLiteral("\u8be5\u7b97\u6cd5\u5c1a\u672a\u914d\u7f6e\u53c2\u6570\u3002"),
+        QStringLiteral("该算法尚未配置参数。"),
         param_form_widget_);
     empty_label->setWordWrap(true);
     param_form_layout_->addRow(empty_label);
@@ -165,7 +165,7 @@ void AlgorithmRunTab::rebuild_param_form() {
     MaterialInput *value_input = new MaterialInput(param_form_widget_);
     value_input->setPlaceholderText(
         param.identifier.isEmpty()
-            ? QStringLiteral("\u8bf7\u8f93\u5165\u53c2\u6570\u503c")
+            ? QStringLiteral("请输入参数值")
             : param.identifier);
     value_input->setText(param.defaultValue);
 
@@ -218,7 +218,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
       if (param.required) {
         if (error_message) {
           *error_message =
-              QStringLiteral("\u53c2\u6570\u300c%1\u300d\u4e0d\u80fd\u4e3a\u7a7a\u3002")
+              QStringLiteral("参数「%1」不能为空。")
                   .arg(display);
         }
         return false;
@@ -233,7 +233,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
       if (!ok) {
         if (error_message) {
           *error_message =
-              QStringLiteral("\u53c2\u6570\u300c%1\u300d\u5fc5\u987b\u662f\u6574\u6570\u3002")
+              QStringLiteral("参数「%1」必须是整数。")
                   .arg(display);
         }
         return false;
@@ -245,7 +245,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
         if (min_ok && value < min_value) {
           if (error_message) {
             *error_message = QStringLiteral(
-                                 "\u53c2\u6570\u300c%1\u300d\u5e94\u5927\u4e8e\u7b49\u4e8e %2\u3002")
+                                 "参数「%1」应大于等于 %2。")
                                  .arg(display, param.minValue.trimmed());
           }
           return false;
@@ -257,7 +257,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
         if (max_ok && value > max_value) {
           if (error_message) {
             *error_message = QStringLiteral(
-                                 "\u53c2\u6570\u300c%1\u300d\u5e94\u5c0f\u4e8e\u7b49\u4e8e %2\u3002")
+                                 "参数「%1」应小于等于 %2。")
                                  .arg(display, param.maxValue.trimmed());
           }
           return false;
@@ -274,7 +274,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
       if (!ok) {
         if (error_message) {
           *error_message =
-              QStringLiteral("\u53c2\u6570\u300c%1\u300d\u5fc5\u987b\u662f\u6570\u503c\u3002")
+              QStringLiteral("参数「%1」必须是数值。")
                   .arg(display);
         }
         return false;
@@ -286,7 +286,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
         if (min_ok && value < min_value) {
           if (error_message) {
             *error_message = QStringLiteral(
-                                 "\u53c2\u6570\u300c%1\u300d\u5e94\u5927\u4e8e\u7b49\u4e8e %2\u3002")
+                                 "参数「%1」应大于等于 %2。")
                                  .arg(display, param.minValue.trimmed());
           }
           return false;
@@ -298,7 +298,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
         if (max_ok && value > max_value) {
           if (error_message) {
             *error_message = QStringLiteral(
-                                 "\u53c2\u6570\u300c%1\u300d\u5e94\u5c0f\u4e8e\u7b49\u4e8e %2\u3002")
+                                 "参数「%1」应小于等于 %2。")
                                  .arg(display, param.maxValue.trimmed());
           }
           return false;
@@ -315,7 +315,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
       if (!ok) {
         if (error_message) {
           *error_message = QStringLiteral(
-                               "\u53c2\u6570\u300c%1\u300d\u5fc5\u987b\u662f\u5e03\u5c14\u503c\u3002")
+                               "参数「%1」必须是布尔值。")
                                .arg(display);
         }
         return false;
@@ -335,7 +335,7 @@ void AlgorithmRunTab::run_algorithm() {
   QString error_message;
   if (!collect_input_json(&input_json, &error_message)) {
     MaterialMessageBox::warning(
-        this, QStringLiteral("\u53c2\u6570\u4e0d\u5408\u6cd5"), error_message);
+        this, QStringLiteral("参数不合法"), error_message);
     return;
   }
 
@@ -343,12 +343,12 @@ void AlgorithmRunTab::run_algorithm() {
 
   QString output_text;
   output_text +=
-      QStringLiteral("\u72b6\u6001\uff1a%1\n")
-          .arg(run_result.success ? QStringLiteral("\u6210\u529f")
-                                  : QStringLiteral("\u5931\u8d25"));
+      QStringLiteral("状态：%1\n")
+          .arg(run_result.success ? QStringLiteral("成功")
+                                  : QStringLiteral("失败"));
   output_text +=
-      QStringLiteral("\u8017\u65f6\uff1a%1 ms\n").arg(run_result.elapsedMs);
-  output_text += QStringLiteral("\u6d88\u606f\uff1a%1\n").arg(run_result.message);
+      QStringLiteral("耗时：%1 ms\n").arg(run_result.elapsedMs);
+  output_text += QStringLiteral("消息：%1\n").arg(run_result.message);
   output_text += QStringLiteral("------------------------------\n");
 
   if (!run_result.outputJson.isEmpty()) {
@@ -357,7 +357,7 @@ void AlgorithmRunTab::run_algorithm() {
   } else if (!run_result.rawOutput.trimmed().isEmpty()) {
     output_text += run_result.rawOutput;
   } else {
-    output_text += QStringLiteral("\u65e0\u8f93\u51fa\u5185\u5bb9\u3002");
+    output_text += QStringLiteral("无输出内容。");
   }
 
   result_output_->setPlainText(output_text);
@@ -390,12 +390,12 @@ QString AlgorithmRunTab::display_name(const AlgorithmParam &param) const {
 bool AlgorithmRunTab::parse_bool(const QString &text, bool *ok) const {
   const QString lower = text.trimmed().toLower();
   if (lower == "1" || lower == "true" || lower == "yes" || lower == "y" ||
-      lower == QStringLiteral("\u662f") || lower == QStringLiteral("\u771f")) {
+      lower == QStringLiteral("是") || lower == QStringLiteral("真")) {
     *ok = true;
     return true;
   }
   if (lower == "0" || lower == "false" || lower == "no" || lower == "n" ||
-      lower == QStringLiteral("\u5426") || lower == QStringLiteral("\u5047")) {
+      lower == QStringLiteral("否") || lower == QStringLiteral("假")) {
     *ok = true;
     return false;
   }
