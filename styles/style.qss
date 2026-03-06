@@ -9,19 +9,26 @@ QWidget {
     background-color: ${SURFACE};
 }
 
+#MainTabBar {
+    background: transparent;
+    border: none;
+}
+
 #SideBar {
     background-color: #F5F6F7;
     border-right: 1px solid ${LINE};
 }
 
 #TitleBar {
-    background-color: transparent;
+    background-color: ${SURFACE};
+    border-bottom: 1px solid ${LINE};
 }
 
 #TitleLabel {
-    font-size: 14pt;
-    font-weight: bold;
-    color: #202124;
+    font-size: 11pt;
+    font-weight: 600;
+    color: ${TEXT_PRIMARY};
+    padding-right: 6px;
 }
 
 #TitleBar QToolButton {
@@ -34,7 +41,7 @@ QWidget {
     background-color: ${LINE};
 }
 
-#HomePage, #FunctionPage, #SettingPage, #InformationPage {
+#HomePage, #UserPage, #FunctionPage, #SettingPage, #InformationPage {
     background-color: ${SURFACE};
     border-radius: 8px;
 }

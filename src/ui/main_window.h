@@ -1,12 +1,10 @@
 #pragma once
 
 #include "components/frameless_widget.h"
+#include "components/main_tab_bar.h"
 #include "components/slide_stacked_widget.h"
-#include <QButtonGroup>
-#include <QHBoxLayout>
-#include <QLabel>
+#include "components/title_bar.h"
 #include <QVBoxLayout>
-#include <QWidget>
 
 class MainWindow : public FramelessWidget {
   Q_OBJECT
@@ -15,8 +13,7 @@ public:
   explicit MainWindow(QWidget *parent = nullptr);
 
 private slots:
-  // 处理导航跳转
-  void onSiderBtnClicked(int id);
+  void onTabRequested(int id);
 
 private:
   enum PageIndex {
@@ -28,16 +25,15 @@ private:
   };
 
   void init_ui();
-  void setup_sidebar();
   void setup_header();
+  void setup_tabs();
   void setup_content();
 
-  // UI 组件
-  QHBoxLayout *main_layout_;    // 全局水平布局
-  QVBoxLayout *content_layout_; // 右侧垂直布局 (包含 Header + Stack)
-
-  SlideStackedWidget *pages_stack_;
-
-  // 状态
-  bool is_logged_;
+  QVBoxLayout *main_layout_ = nullptr;
+  QVBoxLayout *content_layout_ = nullptr;
+  TitleBar *title_bar_ = nullptr;
+  MainTabBar *tab_bar_ = nullptr;
+  SlideStackedWidget *pages_stack_ = nullptr;
+  bool is_logged_ = false;
+  int current_page_index_ = Page_Home;
 };

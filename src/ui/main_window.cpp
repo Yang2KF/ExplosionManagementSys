@@ -5,73 +5,53 @@
 #include "components/login_dialog.h"
 #include "components/mask_widget.h"
 #include "components/setting_page.h"
-#include "components/side_bar.h"
-#include "components/title_bar.h"
+#include "components/ui_system.h"
 #include "components/user_page.h"
-#include <QApplication>
-#include <QDebug>
-#include <QLineEdit>
-#include <QToolButton>
 
 #ifdef Q_OS_WIN
 #include <windows.h>
 #endif
 
-MainWindow::MainWindow(QWidget *parent)
-    : FramelessWidget(parent), is_logged_(false) {
-
+MainWindow::MainWindow(QWidget *parent) : FramelessWidget(parent) {
   resize(1024, 768);
 
   init_ui();
-  // 默认显示 "Home" 页
   pages_stack_->setCurrentIndex(Page_Home);
+  tab_bar_->setCurrentIndex(Page_Home);
+  current_page_index_ = Page_Home;
 }
 
 void MainWindow::init_ui() {
-  // 全局左右分栏
-  main_layout_ = new QHBoxLayout(this);
-  main_layout_->setContentsMargins(0, 0, 0, 0); // 无边距，贴边
+  main_layout_ = new QVBoxLayout(this);
+  main_layout_->setContentsMargins(0, 0, 0, 0);
   main_layout_->setSpacing(0);
 
-  setup_sidebar();
+  setup_header();
 
-  // Content 容器
   QWidget *content_container = new QWidget(this);
   content_container->setObjectName("ContentContainer");
   content_layout_ = new QVBoxLayout(content_container);
-  content_layout_->setContentsMargins(0, 0, 0, 0); // 内容区留白
+  content_layout_->setContentsMargins(0, 0, 0, 0);
   content_layout_->setSpacing(0);
+  main_layout_->addWidget(content_container, 1);
 
-  main_layout_->addWidget(content_container);
-
-  // 挂载全局遮罩
   MaskWidget::instance(this);
 
-  setup_header();
   setup_content();
 }
 
-void MainWindow::setup_sidebar() {
-  SideBar *sider_bar = new SideBar(this);
-  sider_bar->setObjectName("SideBar");
-  sider_bar->setFixedWidth(80);
-  main_layout_->addWidget(sider_bar);
-
-  connect(sider_bar, &SideBar::onSiderBtnRequest, this,
-          &MainWindow::onSiderBtnClicked);
-}
-
 void MainWindow::setup_header() {
-  TitleBar *title_bar = new TitleBar(this);
-  set_drag_bar(title_bar);
-  content_layout_->addWidget(title_bar);
+  title_bar_ = new TitleBar(this);
+  set_drag_bar(title_bar_);
+  main_layout_->addWidget(title_bar_);
 
-  connect(title_bar, &TitleBar::minClicked, this, &MainWindow::showMinimized);
-  connect(title_bar, &TitleBar::maxClicked, this, [this]() {
+  setup_tabs();
+
+  connect(title_bar_, &TitleBar::minClicked, this, &MainWindow::showMinimized);
+  connect(title_bar_, &TitleBar::maxClicked, this, [this]() {
 #ifdef Q_OS_WIN
     HWND hwnd = reinterpret_cast<HWND>(winId());
 
-    // 如果当前最大化，点击恢复；否则最大化
     WINDOWPLACEMENT wp;
     wp.length = sizeof(WINDOWPLACEMENT);
     GetWindowPlacement(hwnd, &wp);
@@ -83,15 +63,34 @@ void MainWindow::setup_header() {
     }
 #endif
   });
-  connect(title_bar, &TitleBar::closeClicked, this, &MainWindow::close);
+  connect(title_bar_, &TitleBar::closeClicked, this, &MainWindow::close);
+}
+
+void MainWindow::setup_tabs() {
+  tab_bar_ = new MainTabBar(title_bar_);
+  tab_bar_->addTab(QStringLiteral("\u7528\u6237"), UISystem::instance().user_icon(),
+                   UISystem::instance().user_icon());
+  tab_bar_->addTab(QStringLiteral("\u4e3b\u9875"), UISystem::instance().home_icon(),
+                   UISystem::instance().home_icon_checked());
+  tab_bar_->addTab(QStringLiteral("\u7b97\u6cd5"),
+                   UISystem::instance().function_icon(),
+                   UISystem::instance().function_icon_checked());
+  tab_bar_->addTab(QStringLiteral("\u8bbe\u7f6e"),
+                   UISystem::instance().settings_icon(),
+                   UISystem::instance().settings_icon_checked());
+  tab_bar_->addTab(QStringLiteral("\u5e2e\u52a9"),
+                   UISystem::instance().information_icon(),
+                   UISystem::instance().information_icon_checked());
+
+  connect(tab_bar_, &MainTabBar::tabRequested, this, &MainWindow::onTabRequested);
+  title_bar_->setCenterWidget(tab_bar_);
 }
 
 void MainWindow::setup_content() {
   pages_stack_ = new SlideStackedWidget(this);
-
   pages_stack_->setContentsMargins(10, 10, 10, 10);
-  pages_stack_->setOrientation(SlideStackedWidget::Orientation::Vertical);
-  pages_stack_->setSlideDuration(240);
+  pages_stack_->setOrientation(SlideStackedWidget::Orientation::Horizontal);
+  pages_stack_->setSlideDuration(220);
 
   pages_stack_->insertWidget(Page_User, new UserPage(this));
   pages_stack_->insertWidget(Page_Home, new HomePage(this));
@@ -99,25 +98,39 @@ void MainWindow::setup_content() {
   pages_stack_->insertWidget(Page_Setting, new SettingPage(this));
   pages_stack_->insertWidget(Page_Info, new InformationPage(this));
 
-  content_layout_->addWidget(pages_stack_);
+  content_layout_->addWidget(pages_stack_, 1);
 }
 
-void MainWindow::onSiderBtnClicked(int id) {
-  if (id == Page_User) {
-    if (!is_logged_) {
-      LoginDialog loginDlg(this);
-      if (loginDlg.exec() == QDialog::Accepted) {
-        is_logged_ = true;
-        pages_stack_->slideToIndex(Page_User);
-      } else {
-        return;
-      }
-    } else {
-      pages_stack_->slideToIndex(Page_User);
-    }
-  } else {
-    if (id >= 0 && id < pages_stack_->count()) {
-      pages_stack_->slideToIndex(id);
-    }
+void MainWindow::onTabRequested(int id) {
+  if (!pages_stack_ || !tab_bar_) {
+    return;
   }
+
+  if (id < 0 || id >= pages_stack_->count()) {
+    tab_bar_->setCurrentIndex(current_page_index_);
+    return;
+  }
+
+  if (id == current_page_index_) {
+    tab_bar_->setCurrentIndex(current_page_index_);
+    return;
+  }
+
+  if (pages_stack_->isAnimating()) {
+    tab_bar_->setCurrentIndex(current_page_index_);
+    return;
+  }
+
+  if (id == Page_User && !is_logged_) {
+    LoginDialog loginDlg(this);
+    if (loginDlg.exec() != QDialog::Accepted) {
+      tab_bar_->setCurrentIndex(current_page_index_);
+      return;
+    }
+    is_logged_ = true;
+  }
+
+  tab_bar_->setCurrentIndex(id);
+  pages_stack_->slideToIndex(id);
+  current_page_index_ = id;
 }
