@@ -10,11 +10,10 @@ void TitleBar::init_ui() {
   setFixedHeight(48);
 
   layout_ = new QHBoxLayout(this);
-  layout_->setContentsMargins(8, 6, 8, 4);
+  layout_->setContentsMargins(8, 6, 8, 0); // bottom must be zero
   layout_->setSpacing(6);
 
-  title_label_ =
-      new QLabel(QStringLiteral("爆炸毁伤算法管理系统"), this);
+  title_label_ = new QLabel(QStringLiteral("爆炸毁伤算法管理系统"), this);
   title_label_->setObjectName("TitleLabel");
 
   center_host_ = new QWidget(this);

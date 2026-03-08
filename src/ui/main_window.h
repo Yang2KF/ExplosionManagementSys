@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 #include "components/frameless_widget.h"
-#include "components/main_tab_bar.h"
 #include "components/slide_stacked_widget.h"
+#include "components/tab_bar.h"
 #include "components/title_bar.h"
 #include "entities/algorithm_data.h"
 #include <QHash>
@@ -33,7 +33,7 @@ private:
   QVBoxLayout *main_layout_ = nullptr;
   QVBoxLayout *content_layout_ = nullptr;
   TitleBar *title_bar_ = nullptr;
-  MainTabBar *tab_bar_ = nullptr;
+  TabBar *tab_bar_ = nullptr;
   SlideStackedWidget *pages_stack_ = nullptr;
 
   FunctionPage *function_page_ = nullptr;

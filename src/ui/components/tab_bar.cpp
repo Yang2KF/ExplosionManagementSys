@@ -1,18 +1,17 @@
-#include "main_tab_bar.h"
+#include "tab_bar.h"
 #include "ui_system.h"
 #include <QEnterEvent>
 #include <QFontMetrics>
-#include <QPalette>
 #include <QPainter>
+#include <QPainterPath>
+#include <QPalette>
 
 namespace {
-constexpr auto kContentSurface = "#F2F3F5";
-constexpr auto kTitleSurface = "#E5E7EA";
-constexpr auto kTabHover = "#ECEEF1";
 constexpr int kTabWidth = 180;
 constexpr int kTabHeight = 34;
 constexpr int kIconSize = 16;
 constexpr int kCloseSize = 14;
+constexpr int kVisualOffsetY = -3;
 
 QPixmap tint_icon(const QIcon &icon, const QSize &size, const QColor &color) {
   QPixmap pixmap = icon.pixmap(size);
@@ -29,9 +28,8 @@ QPixmap tint_icon(const QIcon &icon, const QSize &size, const QColor &color) {
 
 } // namespace
 
-MainTabButton::MainTabButton(const QString &title, const QIcon &normal_icon,
-                             const QIcon &active_icon, bool closable,
-                             QWidget *parent)
+TabButton::TabButton(const QString &title, const QIcon &normal_icon,
+                     const QIcon &active_icon, bool closable, QWidget *parent)
     : QAbstractButton(parent), title_(title), normal_icon_(normal_icon),
       active_icon_(active_icon.isNull() ? normal_icon : active_icon),
       closable_(closable) {
@@ -43,11 +41,9 @@ MainTabButton::MainTabButton(const QString &title, const QIcon &normal_icon,
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }
 
-QSize MainTabButton::sizeHint() const {
-  return QSize(kTabWidth, kTabHeight);
-}
+QSize TabButton::sizeHint() const { return QSize(kTabWidth, kTabHeight); }
 
-void MainTabButton::paintEvent(QPaintEvent *event) {
+void TabButton::paintEvent(QPaintEvent *event) {
   Q_UNUSED(event);
 
   QPainter painter(this);
@@ -55,79 +51,110 @@ void MainTabButton::paintEvent(QPaintEvent *event) {
   painter.setRenderHint(QPainter::TextAntialiasing);
   painter.setRenderHint(QPainter::SmoothPixmapTransform);
 
-  const QColor bg_color =
-      isChecked() ? QColor(kContentSurface)
-                  : (hovered_ ? QColor(kTabHover) : Qt::transparent);
-  const QColor icon_color =
-      isChecked() ? UISystem::instance().icon_active()
-                  : UISystem::instance().icon_normal();
-  const QColor text_color =
-      isChecked() ? UISystem::instance().text_primary()
-                  : UISystem::instance().text_secondary();
+  QColor content_surface = UISystem::instance().surface();
+  QColor tab_hover = QColor{"#d6dae1"};
 
-  const QRect body_rect = rect().adjusted(2, 1, -2, 0);
+  const QColor bg_color =
+      isChecked() ? content_surface : (hovered_ ? tab_hover : Qt::transparent);
+  const QColor icon_color = isChecked() ? UISystem::instance().icon_active()
+                                        : UISystem::instance().icon_normal();
+  const QColor text_color = isChecked() ? UISystem::instance().bg_primary()
+                                        : UISystem::instance().text_secondary();
+
+  const QRect body_rect = rect();
   painter.setPen(Qt::NoPen);
-  painter.setBrush(bg_color);
-  painter.drawRoundedRect(body_rect, 8, 8);
+
+  if (isChecked()) {
+    painter.setBrush(content_surface);
+    QPainterPath path;
+    int radius = 8; // 顶部圆角大小
+
+    path.moveTo(body_rect.bottomLeft());
+    path.lineTo(body_rect.left(), body_rect.top() + radius);
+    path.arcTo(body_rect.left(), body_rect.top(), radius * 2, radius * 2, 180,
+               -90);
+    path.lineTo(body_rect.right() - radius, body_rect.top());
+    path.arcTo(body_rect.right() - radius * 2, body_rect.top(), radius * 2,
+               radius * 2, 90, -90);
+    path.lineTo(body_rect.bottomRight());
+    path.closeSubpath();
+    painter.drawPath(path);
+
+    painter.drawRect(
+        QRect(body_rect.left(), body_rect.bottom() - 1, body_rect.width(), 2));
+
+  } else if (hovered_) {
+    painter.setBrush(tab_hover);
+    QRect hover_rect = body_rect.adjusted(2, 2, -2, -6);
+    painter.drawRoundedRect(hover_rect, 6, 6); // 药丸圆角
+  }
 
   const QIcon icon = isChecked() ? active_icon_ : normal_icon_;
   const QSize icon_size(kIconSize, kIconSize);
-  const QRect icon_rect(body_rect.left() + 10,
-                        body_rect.top() + (body_rect.height() - icon_size.height()) / 2,
-                        icon_size.width(), icon_size.height());
+
+  QRect icon_rect(body_rect.left() + 12, // 左侧留白稍微大点
+                  body_rect.top() +
+                      (body_rect.height() - icon_size.height()) / 2 +
+                      kVisualOffsetY,
+                  icon_size.width(), icon_size.height());
+
   const QPixmap icon_pixmap = tint_icon(icon, icon_size, icon_color);
   if (!icon_pixmap.isNull()) {
     painter.drawPixmap(icon_rect, icon_pixmap);
   }
 
-  const int right_padding = closable_ ? (kCloseSize + 12) : 11;
-  QRect text_rect = body_rect.adjusted(icon_rect.right() + 7, 0, -right_padding, 0);
+  const int right_padding = closable_ ? (kCloseSize + 16) : 12;
+  QRect text_rect =
+      body_rect.adjusted(icon_rect.right() + 8, 0, -right_padding, 0);
+  text_rect.translate(0, kVisualOffsetY); // 统一上移
+
   painter.setPen(text_color);
+  QFont font = painter.font();
+  font.setBold(isChecked());
+  painter.setFont(font);
+
   const QString shown_title = elided_title(text_rect.width());
   setToolTip(shown_title == title_ ? QString() : title_);
   painter.drawText(text_rect, Qt::AlignVCenter | Qt::AlignLeft, shown_title);
 
   if (closable_) {
-    const QRect close_rect = this->close_rect();
+    QRect close_rect = this->close_rect();
+    close_rect.translate(0, kVisualOffsetY + 2);
+
     if (close_hovered_) {
       painter.setPen(Qt::NoPen);
       painter.setBrush(UISystem::instance().line());
       painter.drawRoundedRect(close_rect.adjusted(-2, -2, 2, 2), 4, 4);
     }
-    const QPixmap close_icon = tint_icon(UISystem::instance().close_icon(),
-                                         QSize(12, 12), text_color);
+    const QPixmap close_icon =
+        tint_icon(UISystem::instance().close_icon(), QSize(12, 12), text_color);
     if (!close_icon.isNull()) {
-      const QRect icon_rect(close_rect.center().x() - 6, close_rect.center().y() - 6,
-                            12, 12);
-      painter.drawPixmap(icon_rect, close_icon);
+      QRect c_icon_rect(close_rect.center().x() - 5,
+                        close_rect.center().y() - 5, 10, 10);
+      painter.drawPixmap(c_icon_rect, close_icon);
     }
-  }
-
-  if (isChecked()) {
-    // Make selected tab blend into content region.
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(QColor(kContentSurface));
-    painter.drawRect(QRect(body_rect.left() + 1, body_rect.bottom() - 1,
-                           body_rect.width() - 2, 2));
   }
 }
 
-void MainTabButton::enterEvent(QEnterEvent *event) {
+void TabButton::enterEvent(QEnterEvent *event) {
   hovered_ = true;
-  close_hovered_ = closable_ && close_rect().contains(event->position().toPoint());
+  close_hovered_ =
+      closable_ && close_rect().contains(event->position().toPoint());
   QAbstractButton::enterEvent(event);
   update();
 }
 
-void MainTabButton::leaveEvent(QEvent *event) {
+void TabButton::leaveEvent(QEvent *event) {
   hovered_ = false;
   close_hovered_ = false;
   QAbstractButton::leaveEvent(event);
   update();
 }
 
-void MainTabButton::mouseMoveEvent(QMouseEvent *event) {
-  const bool hovered = closable_ && close_rect().contains(event->pos());
+void TabButton::mouseMoveEvent(QMouseEvent *event) {
+  const bool hovered =
+      closable_ &&
+      close_rect().translated(0, kVisualOffsetY).contains(event->pos());
   if (hovered != close_hovered_) {
     close_hovered_ = hovered;
     update();
@@ -135,9 +162,9 @@ void MainTabButton::mouseMoveEvent(QMouseEvent *event) {
   QAbstractButton::mouseMoveEvent(event);
 }
 
-void MainTabButton::mouseReleaseEvent(QMouseEvent *event) {
+void TabButton::mouseReleaseEvent(QMouseEvent *event) {
   if (closable_ && event->button() == Qt::LeftButton &&
-      close_rect().contains(event->pos())) {
+      close_rect().translated(0, kVisualOffsetY).contains(event->pos())) {
     setDown(false);
     update();
     emit closeRequested();
@@ -147,47 +174,46 @@ void MainTabButton::mouseReleaseEvent(QMouseEvent *event) {
   QAbstractButton::mouseReleaseEvent(event);
 }
 
-QRect MainTabButton::close_rect() const {
-  const QRect body_rect = rect().adjusted(2, 1, -2, 0);
+QRect TabButton::close_rect() const {
+  const QRect body_rect = rect();
   const int x = body_rect.right() - kCloseSize - 8;
   const int y = body_rect.top() + (body_rect.height() - kCloseSize) / 2;
   return QRect(x, y, kCloseSize, kCloseSize);
 }
 
-QString MainTabButton::elided_title(int width) const {
+QString TabButton::elided_title(int width) const {
   const QFontMetrics metrics(font());
   return metrics.elidedText(title_, Qt::ElideRight, qMax(10, width));
 }
 
-MainTabBar::MainTabBar(QWidget *parent) : QWidget(parent) {
+TabBar::TabBar(QWidget *parent) : QWidget(parent) {
   setAttribute(Qt::WA_StyledBackground, true);
-  setObjectName("MainTabBar");
+  setObjectName("TabBar");
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   setAutoFillBackground(true);
   QPalette palette = this->palette();
-  palette.setColor(QPalette::Window, QColor(kTitleSurface));
+  palette.setColor(QPalette::Window, QColor("#E5E7EA")); // 标题栏底色
   setPalette(palette);
 
   layout_ = new QHBoxLayout(this);
   layout_->setContentsMargins(6, 1, 6, 0);
-  layout_->setSpacing(6);
-  layout_->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  layout_->setSpacing(2); // Tab 之间的间距
+  layout_->setAlignment(Qt::AlignLeft | Qt::AlignBottom);
 
   button_group_ = new QButtonGroup(this);
   button_group_->setExclusive(true);
-  connect(button_group_, &QButtonGroup::idClicked, this,
-          &MainTabBar::tabRequested);
+  connect(button_group_, &QButtonGroup::idClicked, this, &TabBar::tabRequested);
 }
 
-int MainTabBar::addTab(const QString &title, const QIcon &normal_icon,
-                       const QIcon &active_icon, bool closable) {
-  MainTabButton *button =
-      new MainTabButton(title, normal_icon, active_icon, closable, this);
+int TabBar::addTab(const QString &title, const QIcon &normal_icon,
+                   const QIcon &active_icon, bool closable) {
+  TabButton *button =
+      new TabButton(title, normal_icon, active_icon, closable, this);
   const int index = buttons_.size();
   buttons_.append(button);
   layout_->addWidget(button);
   button_group_->addButton(button, index);
-  connect(button, &MainTabButton::closeRequested, this, [this, button]() {
+  connect(button, &TabButton::closeRequested, this, [this, button]() {
     const int idx = buttons_.indexOf(button);
     if (idx >= 0) {
       emit tabCloseRequested(idx);
@@ -201,12 +227,12 @@ int MainTabBar::addTab(const QString &title, const QIcon &normal_icon,
   return index;
 }
 
-void MainTabBar::removeTab(int index) {
+void TabBar::removeTab(int index) {
   if (index < 0 || index >= buttons_.size()) {
     return;
   }
 
-  MainTabButton *button = buttons_.takeAt(index);
+  TabButton *button = buttons_.takeAt(index);
   button_group_->removeButton(button);
   layout_->removeWidget(button);
   button->deleteLater();
@@ -228,7 +254,7 @@ void MainTabBar::removeTab(int index) {
   setCurrentIndex(current_index_);
 }
 
-void MainTabBar::setCurrentIndex(int index) {
+void TabBar::setCurrentIndex(int index) {
   if (index < 0 || index >= buttons_.size()) {
     return;
   }

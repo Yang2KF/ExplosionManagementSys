@@ -9,14 +9,13 @@
 #include <QMouseEvent>
 #include <QWidget>
 
-class MainTabButton : public QAbstractButton {
+class TabButton : public QAbstractButton {
   Q_OBJECT
 
 public:
-  explicit MainTabButton(const QString &title, const QIcon &normal_icon,
-                         const QIcon &active_icon = QIcon(),
-                         bool closable = false,
-                         QWidget *parent = nullptr);
+  explicit TabButton(const QString &title, const QIcon &normal_icon,
+                     const QIcon &active_icon = QIcon(), bool closable = false,
+                     QWidget *parent = nullptr);
 
   QSize sizeHint() const override;
   bool isClosable() const { return closable_; }
@@ -43,11 +42,11 @@ private:
   bool close_hovered_ = false;
 };
 
-class MainTabBar : public QWidget {
+class TabBar : public QWidget {
   Q_OBJECT
 
 public:
-  explicit MainTabBar(QWidget *parent = nullptr);
+  explicit TabBar(QWidget *parent = nullptr);
 
   int addTab(const QString &title, const QIcon &normal_icon,
              const QIcon &active_icon = QIcon(), bool closable = false);
@@ -63,6 +62,6 @@ signals:
 private:
   QHBoxLayout *layout_ = nullptr;
   QButtonGroup *button_group_ = nullptr;
-  QList<MainTabButton *> buttons_;
+  QList<TabButton *> buttons_;
   int current_index_ = -1;
 };

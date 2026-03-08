@@ -5,22 +5,23 @@ QWidget {
     outline: none;
 }
 
-#ContentContainer {
-    background-color: #F2F3F5;
+#ContentContainer, #FunctionPage{
+    background-color: ${SURFACE};
+    border: none;
 }
 
-#MainTabBar {
+#TabBar {
     background: transparent;
     border: none;
 }
 
 #TitleBar {
     background-color: #E5E7EA;
-    border-bottom: 1px solid #D5D8DC;
+    border: none;
 }
 
 #TitleLabel {
-    font-size: 11pt;
+    font-size: 14pt;
     font-weight: 600;
     color: ${TEXT_SECONDARY};
     padding-right: 6px;
@@ -34,11 +35,6 @@ QWidget {
 
 #TitleBar QToolButton:hover {
     background-color: ${LINE};
-}
-
-#FunctionPage {
-    background-color: #F2F3F5;
-    border-radius: 0px;
 }
 
 #MessageBoxContainer {

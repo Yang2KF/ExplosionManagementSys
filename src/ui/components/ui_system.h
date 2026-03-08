@@ -23,7 +23,6 @@ public:
   QColor bg_hover() const { return QColor{"#F0F0F0"}; }
 
   // content
-  QColor content_white() const { return Qt::white; }
   QColor icon_normal() const { return QColor{"#5F6368"}; }
   QColor icon_active() const { return QColor{"#1A73E8"}; }
   QColor line() const { return QColor{"#E0E0E0"}; }

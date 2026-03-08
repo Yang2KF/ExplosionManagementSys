@@ -63,12 +63,13 @@ void MainWindow::setup_header() {
 }
 
 void MainWindow::setup_tabs() {
-  tab_bar_ = new MainTabBar(title_bar_);
-  tab_bar_->addTab(QStringLiteral("算法列表"), UISystem::instance().function_icon(),
+  tab_bar_ = new TabBar(title_bar_);
+  tab_bar_->addTab(QStringLiteral("算法列表"),
+                   UISystem::instance().function_icon(),
                    UISystem::instance().function_icon_checked(), false);
 
-  connect(tab_bar_, &MainTabBar::tabRequested, this, &MainWindow::onTabRequested);
-  connect(tab_bar_, &MainTabBar::tabCloseRequested, this,
+  connect(tab_bar_, &TabBar::tabRequested, this, &MainWindow::onTabRequested);
+  connect(tab_bar_, &TabBar::tabCloseRequested, this,
           &MainWindow::onTabCloseRequested);
   title_bar_->setCenterWidget(tab_bar_);
 }

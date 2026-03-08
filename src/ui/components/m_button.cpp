@@ -83,7 +83,7 @@ void MaterialButton::paintEvent(QPaintEvent *event) {
   if (type_ == WithIcon) {
     content_color = isChecked() ? icon_color_checked_ : icon_color_normal_;
   } else {
-    content_color = UISystem::instance().content_white();
+    content_color = UISystem::instance().surface();
   }
 
   // 根据状态选择对应的图标对象
