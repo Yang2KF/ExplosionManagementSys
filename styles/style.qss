@@ -117,77 +117,115 @@ QComboBox#AlgoEditCategoryCombo::drop-down {
 }
 
 QComboBox#AlgoEditCategoryCombo::down-arrow {
-    image: url(:/icons/arrow_down);
+    image: url(:/icons/arrow_down_line);
 }
 
 QTreeView#FunctionCategoryTree {
-    background: #F5F6F7;
-    border-radius: 8px;
-    border: none;
-    padding: 6px;
+    background: transparent; /* 背景透明，融入父级纯白底色 */
+    border-right: 1px solid ${LINE}; /* 只在右侧画一条浅色分割线，取代 Splitter 的生硬切割 */
+    border-radius: 0px; 
+    outline: none;
+    show-decoration-selected: 1; /* 关键：让选中颜色覆盖整行（包括前面的箭头区域） */
 }
 
 QTreeView#FunctionCategoryTree::item {
-    min-height: 28px;
+    min-height: 36px;
     padding-left: 8px;
-    border-radius: 4px;
+    border: none;
+    margin: 0px; /* 去掉之前的 margin，防止断层 */
 }
 
-QTreeView#FunctionCategoryTree::item:selected {
-    background: #D3E3FD;
-    color: ${TEXT_PRIMARY};
+QTreeView#FunctionCategoryTree::item:hover, 
+QTreeView#FunctionCategoryTree::branch:hover {
+    background: #F0F2F5; 
+}
+
+QTreeView#FunctionCategoryTree::item:selected, 
+QTreeView#FunctionCategoryTree::branch:selected {
+    background: #E8F0FE; 
+}
+
+QTreeView#FunctionCategoryTree::item:selected:active,
+QTreeView#FunctionCategoryTree::item:selected:!active {
+    color: ${PRIMARY};
+    font-weight: bold;
+}
+
+/* 自定义展开/折叠小箭头 (极简风格) */
+QTreeView#FunctionCategoryTree::branch:has-children:!has-siblings:closed,
+QTreeView#FunctionCategoryTree::branch:closed:has-children:has-siblings {
+    border-image: none;
+    image: url(:/icons/arrow_right_line);
+}
+
+QTreeView#FunctionCategoryTree::branch:open:has-children:!has-siblings,
+QTreeView#FunctionCategoryTree::branch:open:has-children:has-siblings  {
+    border-image: none;
+    image: url(:/icons/arrow_down_line);  
 }
 
 QTableView#FunctionAlgoTable {
     background: ${SURFACE};
-    border-radius: 8px;
-    border: 1px solid ${LINE};
-    selection-background-color: #D3E3FD;
-    selection-color: ${TEXT_PRIMARY};
-    gridline-color: ${LINE};
+    border: none; /* 去掉表格外层大边框，显得更开阔 */
+    outline: none;
 }
 
 QTableView#FunctionAlgoTable::item {
-    padding: 7px 8px;
+    padding: 6px 12px;
+    border-bottom: 1px solid #F0F2F5; /* 只保留极淡的水平底线 */
+}
+
+QTableView#FunctionAlgoTable::item:hover {
+    background: #FAFAFA; 
 }
 
 QTableView#FunctionAlgoTable::item:selected {
-    background: #DCE8FF;
-    color: ${TEXT_PRIMARY};
+    background: #F4F8FF; /* 干净的淡蓝选中色 */
+    color: ${PRIMARY};
+    border-bottom: 1px solid #F0F2F5; 
 }
 
 QTableView#FunctionAlgoTable QHeaderView::section {
-    background: #F8FAFD;
+    background: transparent; /* 表头透明或极淡灰色 */
     color: ${TEXT_SECONDARY};
     border: none;
-    border-bottom: 1px solid ${LINE};
-    padding: 7px 8px;
+    border-bottom: 1px solid #DCDFE6; /* 表头底边线稍微明显一点 */
+    padding: 10px 12px;
     font-size: 10.5pt;
-    font-weight: 600;
+    font-weight: bold;
 }
 
 #FunctionRunnerPanel {
-    background: #F8FAFE;
-    border: 1px solid #E2E8F2;
-    border-radius: 12px;
+    background: transparent; 
+    border: none;
+    border-radius: 0px;
+}
+
+QSplitter::handle {
+    background-color: ${LINE}; 
 }
 
 QLabel#FunctionRunnerTitle {
-    font-size: 16pt;
+    font-size: 15pt;
     font-weight: 700;
     color: ${TEXT_PRIMARY};
 }
 
-QLabel#FunctionRunnerAlgo {
-    font-size: 12pt;
+QLabel#FunctionRunnerAlgoName {
+    font-size: 13pt;
     font-weight: 600;
-    color: ${TEXT_PRIMARY};
+    color: ${PRIMARY}; /* 蓝色高亮，突出当前正在运行什么 */
+}
+
+QLabel#FunctionRunnerAlgoMeta {
+    font-size: 12pt;
+    font-weight: 400;
+    color: ${TEXT_SECONDARY}; 
 }
 
 QScrollArea#FunctionRunnerParamScroll {
-    border: 1px solid ${LINE};
-    border-radius: 8px;
-    background: ${SURFACE};
+    border: none;
+    background: transparent;
 }
 
 QWidget#FunctionRunnerParamForm {
@@ -195,18 +233,20 @@ QWidget#FunctionRunnerParamForm {
 }
 
 QLabel#FunctionParamLabel {
-    font-size: 11pt;
-    font-weight: 600;
-    color: ${TEXT_PRIMARY};
+    font-size: 12pt;
+    font-weight: 500;
+    color: #4A4F55; 
 }
 
 QTextEdit#FunctionRunnerResult {
-    background: ${SURFACE};
-    border: 1px solid ${LINE};
+    background: #F8FAFC; /* 极浅的蓝灰色，像一个终端界面 */
+    border: none; /* 无边框设计，全靠背景色区分 */
     border-radius: 8px;
-    padding: 8px;
-    font-size: 10.5pt;
-    font-family: "Consolas";
+    padding: 16px;
+    font-size: 12pt;
+    font-family: "Consolas", "Courier New", monospace;
+    color: #334155; /* Slate 色系深灰，阅读代码非常舒适 */
+    line-height: 1.6;
 }
 
 QLineEdit {

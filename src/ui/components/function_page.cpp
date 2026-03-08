@@ -39,17 +39,16 @@ void FunctionPage::setup_toolbar() {
   tool_layout_->setSpacing(10);
 
   search_input_ = new MaterialInput(this);
-  search_input_->setPlaceholderText(
-      QStringLiteral("搜索算法名称..."));
+  search_input_->setPlaceholderText(QStringLiteral("搜索算法名称..."));
   search_input_->setFixedWidth(300);
 
-  add_btn_ = new MaterialButton(QStringLiteral("新增"),
-                                MaterialButton::Normal, this);
+  add_btn_ =
+      new MaterialButton(QStringLiteral("新增"), MaterialButton::Normal, this);
   add_btn_->set_theme_color(UISystem::instance().bg_primary());
   add_btn_->setFixedSize(100, 40);
 
-  refresh_btn_ = new MaterialButton(QStringLiteral("刷新"),
-                                    MaterialButton::Normal, this);
+  refresh_btn_ =
+      new MaterialButton(QStringLiteral("刷新"), MaterialButton::Normal, this);
   refresh_btn_->setFixedSize(80, 40);
   refresh_btn_->set_theme_color(UISystem::instance().neutral());
 
@@ -70,6 +69,12 @@ void FunctionPage::setup_views() {
   category_tree_->setObjectName("FunctionCategoryTree");
   category_tree_->setHeaderHidden(true);
   category_tree_->setFrameShape(QFrame::NoFrame);
+  category_tree_->setAnimated(true);           // 开启展开/折叠动画
+  category_tree_->setIndentation(16);          // 缩小默认缩进，视觉更紧凑
+  category_tree_->setFocusPolicy(Qt::NoFocus); // 彻底消除点击时的虚线框
+  category_tree_->setEditTriggers(QAbstractItemView::NoEditTriggers); // 只读
+  // 鼠标悬停变为手型（Web风格）
+  category_tree_->setCursor(Qt::PointingHandCursor);
 
   right_panel_ = new QWidget(splitter_);
   right_layout_ = new QVBoxLayout(right_panel_);
@@ -79,12 +84,22 @@ void FunctionPage::setup_views() {
   algo_table_ = new QTableView(right_panel_);
   algo_table_->setObjectName("FunctionAlgoTable");
   algo_table_->setFrameShape(QFrame::NoFrame);
-  algo_table_->setAlternatingRowColors(true);
+  algo_table_->setAlternatingRowColors(false);
   algo_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
   algo_table_->setSelectionMode(QAbstractItemView::SingleSelection);
   algo_table_->setContextMenuPolicy(Qt::CustomContextMenu);
   algo_table_->verticalHeader()->setVisible(false);
   algo_table_->horizontalHeader()->setStretchLastSection(true);
+  algo_table_->setFocusPolicy(Qt::NoFocus);
+  algo_table_->setShowGrid(false);
+
+  algo_table_->verticalHeader()->setVisible(false);
+  algo_table_->verticalHeader()->setDefaultSectionSize(40); // 增加行高
+  algo_table_->horizontalHeader()->setStretchLastSection(true);
+  algo_table_->horizontalHeader()->setDefaultAlignment(
+      Qt::AlignLeft | Qt::AlignVCenter); // 表头左对齐更清爽
+  algo_table_->horizontalHeader()->setHighlightSections(
+      false); // 点击列表头不加粗
 
   right_layout_->addWidget(algo_table_);
 
@@ -127,13 +142,11 @@ void FunctionPage::init_connections() {
     QString error_message;
     if (algorithm_service_.create_algorithm(info, &error_message)) {
       table_model_->load_data(QString());
-      MaterialMessageBox::information(
-          this, QStringLiteral("成功"),
-          QStringLiteral("算法已新增。"));
+      MaterialMessageBox::information(this, QStringLiteral("成功"),
+                                      QStringLiteral("算法已新增。"));
     } else {
-      MaterialMessageBox::error(
-          this, QStringLiteral("失败"),
-          QStringLiteral("数据库错误：") + error_message);
+      MaterialMessageBox::error(this, QStringLiteral("失败"),
+                                QStringLiteral("数据库错误：") + error_message);
     }
   });
 
@@ -231,9 +244,8 @@ void FunctionPage::edit_algorithm_by_row(int row) {
   if (algorithm_service_.update_algorithm(new_info, &error_message)) {
     table_model_->load_data(QString());
   } else {
-    MaterialMessageBox::error(
-        this, QStringLiteral("失败"),
-        QStringLiteral("更新失败：") + error_message);
+    MaterialMessageBox::error(this, QStringLiteral("失败"),
+                              QStringLiteral("更新失败：") + error_message);
   }
 }
 
@@ -244,9 +256,8 @@ void FunctionPage::delete_algorithm_by_row(int row) {
 
   const AlgorithmInfo info = table_model_->get_item(row);
   if (info.id.isEmpty()) {
-    MaterialMessageBox::warning(
-        this, QStringLiteral("提示"),
-        QStringLiteral("无效的算法数据。"));
+    MaterialMessageBox::warning(this, QStringLiteral("提示"),
+                                QStringLiteral("无效的算法数据。"));
     return;
   }
 
@@ -254,8 +265,7 @@ void FunctionPage::delete_algorithm_by_row(int row) {
   const QString algo_name = info.name;
   const int reply = MaterialMessageBox::question(
       this, QStringLiteral("确认删除"),
-      QStringLiteral("确认删除算法「%1」？此操作不可撤销。")
-          .arg(algo_name));
+      QStringLiteral("确认删除算法「%1」？此操作不可撤销。").arg(algo_name));
   if (reply != QDialog::Accepted) {
     return;
   }
@@ -264,8 +274,7 @@ void FunctionPage::delete_algorithm_by_row(int row) {
   if (algorithm_service_.delete_algorithm(algo_id, &error_message)) {
     table_model_->load_data(QString());
   } else {
-    MaterialMessageBox::error(
-        this, QStringLiteral("失败"),
-        QStringLiteral("删除失败：") + error_message);
+    MaterialMessageBox::error(this, QStringLiteral("失败"),
+                              QStringLiteral("删除失败：") + error_message);
   }
 }

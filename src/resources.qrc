@@ -27,6 +27,12 @@
     <qresource prefix="/icons">
         <file alias="user_icon_line">../images/user-line.svg</file>
     </qresource>
+    <qresource prefix="/icons">
+        <file alias="arrow_down_line">../images/arrow-down-s-line.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="arrow_right_line">../images/arrow-right-s-line.svg</file>
+    </qresource>
     
     <qresource prefix="/icons">
         <file alias="home_icon_fill">../images/home-fill.svg</file>

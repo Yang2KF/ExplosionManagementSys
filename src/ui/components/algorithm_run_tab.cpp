@@ -13,7 +13,8 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 
-AlgorithmRunTab::AlgorithmRunTab(const AlgorithmInfo &algorithm, QWidget *parent)
+AlgorithmRunTab::AlgorithmRunTab(const AlgorithmInfo &algorithm,
+                                 QWidget *parent)
     : QWidget(parent), algorithm_(algorithm) {
   setAttribute(Qt::WA_StyledBackground, true);
   init_ui();
@@ -30,37 +31,42 @@ QString AlgorithmRunTab::tabKey() const {
 
 void AlgorithmRunTab::init_ui() {
   QVBoxLayout *main_layout = new QVBoxLayout(this);
+  // 【优化 1】最外层不要边距，让左右面板彻底铺满整个 Tab
   main_layout->setContentsMargins(0, 0, 0, 0);
   main_layout->setSpacing(0);
 
   QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
   splitter->setChildrenCollapsible(false);
+  // 【优化 2】句柄宽度设为 1，准备在 QSS 里把它变成一条细细的分割线
   splitter->setHandleWidth(1);
   main_layout->addWidget(splitter);
 
   QWidget *left_panel = new QWidget(splitter);
   left_panel->setObjectName("FunctionRunnerPanel");
   QVBoxLayout *left_layout = new QVBoxLayout(left_panel);
-  left_layout->setContentsMargins(14, 14, 14, 14);
-  left_layout->setSpacing(10);
+  // 【优化 3】内部留出充足的呼吸空间 (24px)
+  left_layout->setContentsMargins(24, 24, 24, 24);
+  left_layout->setSpacing(12);
 
   QLabel *title_label = new QLabel(QStringLiteral("算法运行"), left_panel);
   title_label->setObjectName("FunctionRunnerTitle");
-
-  algo_label_ = new QLabel(left_panel);
-  algo_label_->setObjectName("FunctionRunnerAlgo");
-  algo_label_->setWordWrap(true);
 
   const QString runtime_type =
       (algorithm_.sourceType.trimmed() == "2" ||
        QFileInfo(algorithm_.filePath.trimmed()).suffix().toLower() == "py")
           ? QStringLiteral("Python")
           : QStringLiteral("DLL");
-  algo_label_->setText(
-      QStringLiteral("%1\n%2: %3\n%4: %5")
-          .arg(algorithm_.name, QStringLiteral("运行类型"),
-               runtime_type, QStringLiteral("入口函数"),
-               algorithm_.funcName));
+
+  // 【优化 4】将原本揉在一起的信息拆分为“大标题”和“灰色小字元数据”
+  QLabel *algo_name_label = new QLabel(algorithm_.name, left_panel);
+  algo_name_label->setObjectName("FunctionRunnerAlgoName");
+  algo_name_label->setWordWrap(true);
+
+  QLabel *algo_meta_label =
+      new QLabel(QStringLiteral("运行类型: %1    |    入口函数: %2")
+                     .arg(runtime_type, algorithm_.funcName),
+                 left_panel);
+  algo_meta_label->setObjectName("FunctionRunnerAlgoMeta");
 
   param_scroll_area_ = new QScrollArea(left_panel);
   param_scroll_area_->setObjectName("FunctionRunnerParamScroll");
@@ -70,9 +76,9 @@ void AlgorithmRunTab::init_ui() {
   param_form_widget_ = new QWidget(param_scroll_area_);
   param_form_widget_->setObjectName("FunctionRunnerParamForm");
   param_form_layout_ = new QFormLayout(param_form_widget_);
-  param_form_layout_->setContentsMargins(0, 0, 0, 0);
+  param_form_layout_->setContentsMargins(0, 10, 0, 0); // 顶部稍微留点空
   param_form_layout_->setHorizontalSpacing(16);
-  param_form_layout_->setVerticalSpacing(10);
+  param_form_layout_->setVerticalSpacing(16); // 稍微拉大输入框之间的间距
   param_scroll_area_->setWidget(param_form_widget_);
 
   QHBoxLayout *button_layout = new QHBoxLayout();
@@ -83,8 +89,8 @@ void AlgorithmRunTab::init_ui() {
   reset_btn_->set_theme_color(UISystem::instance().neutral());
   reset_btn_->setFixedSize(90, 34);
 
-  run_btn_ = new MaterialButton(QStringLiteral("运行"),
-                                MaterialButton::Normal, left_panel);
+  run_btn_ = new MaterialButton(QStringLiteral("运行"), MaterialButton::Normal,
+                                left_panel);
   run_btn_->set_theme_color(UISystem::instance().bg_primary());
   run_btn_->setFixedSize(90, 34);
 
@@ -92,25 +98,27 @@ void AlgorithmRunTab::init_ui() {
   button_layout->addWidget(run_btn_);
 
   left_layout->addWidget(title_label);
-  left_layout->addWidget(algo_label_);
+  left_layout->addWidget(algo_name_label);
+  left_layout->addWidget(algo_meta_label);
+  // 加一个 10px 的固定间距，把元数据和下面的参数区隔开
+  left_layout->addSpacing(10);
   left_layout->addWidget(param_scroll_area_, 1);
   left_layout->addLayout(button_layout);
 
+  // === 右侧面板保持原有代码，只需调整 margin ===
   QWidget *right_panel = new QWidget(splitter);
   right_panel->setObjectName("FunctionRunnerPanel");
   QVBoxLayout *right_layout = new QVBoxLayout(right_panel);
-  right_layout->setContentsMargins(14, 14, 14, 14);
-  right_layout->setSpacing(10);
+  right_layout->setContentsMargins(24, 24, 24, 24); // 内部留白 24px
+  right_layout->setSpacing(12);
 
-  QLabel *result_title =
-      new QLabel(QStringLiteral("运行结果"), right_panel);
+  QLabel *result_title = new QLabel(QStringLiteral("运行结果"), right_panel);
   result_title->setObjectName("FunctionRunnerTitle");
 
   result_output_ = new QTextEdit(right_panel);
   result_output_->setObjectName("FunctionRunnerResult");
   result_output_->setReadOnly(true);
-  result_output_->setPlaceholderText(
-      QStringLiteral("运行结果将在此显示。"));
+  result_output_->setPlaceholderText(QStringLiteral("运行结果将在此显示。"));
 
   right_layout->addWidget(result_title);
   right_layout->addWidget(result_output_, 1);
@@ -150,9 +158,8 @@ void AlgorithmRunTab::rebuild_param_form() {
   param_inputs_.clear();
 
   if (params_.isEmpty()) {
-    QLabel *empty_label = new QLabel(
-        QStringLiteral("该算法尚未配置参数。"),
-        param_form_widget_);
+    QLabel *empty_label =
+        new QLabel(QStringLiteral("该算法尚未配置参数。"), param_form_widget_);
     empty_label->setWordWrap(true);
     param_form_layout_->addRow(empty_label);
     return;
@@ -163,10 +170,9 @@ void AlgorithmRunTab::rebuild_param_form() {
     name_label->setObjectName("FunctionParamLabel");
 
     MaterialInput *value_input = new MaterialInput(param_form_widget_);
-    value_input->setPlaceholderText(
-        param.identifier.isEmpty()
-            ? QStringLiteral("请输入参数值")
-            : param.identifier);
+    value_input->setPlaceholderText(param.identifier.isEmpty()
+                                        ? QStringLiteral("请输入参数值")
+                                        : param.identifier);
     value_input->setText(param.defaultValue);
 
     if (!param.tooltip.trimmed().isEmpty()) {
@@ -202,7 +208,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
     }
 
     const QString display = param.name.isEmpty() ? param.identifier.trimmed()
-                                                  : param.name.trimmed();
+                                                 : param.name.trimmed();
     const QString param_key = param.identifier.isEmpty()
                                   ? param.name.trimmed()
                                   : param.identifier.trimmed();
@@ -217,9 +223,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
     if (value_text.isEmpty()) {
       if (param.required) {
         if (error_message) {
-          *error_message =
-              QStringLiteral("参数「%1」不能为空。")
-                  .arg(display);
+          *error_message = QStringLiteral("参数「%1」不能为空。").arg(display);
         }
         return false;
       }
@@ -233,8 +237,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
       if (!ok) {
         if (error_message) {
           *error_message =
-              QStringLiteral("参数「%1」必须是整数。")
-                  .arg(display);
+              QStringLiteral("参数「%1」必须是整数。").arg(display);
         }
         return false;
       }
@@ -244,8 +247,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
         const double min_value = param.minValue.toDouble(&min_ok);
         if (min_ok && value < min_value) {
           if (error_message) {
-            *error_message = QStringLiteral(
-                                 "参数「%1」应大于等于 %2。")
+            *error_message = QStringLiteral("参数「%1」应大于等于 %2。")
                                  .arg(display, param.minValue.trimmed());
           }
           return false;
@@ -256,8 +258,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
         const double max_value = param.maxValue.toDouble(&max_ok);
         if (max_ok && value > max_value) {
           if (error_message) {
-            *error_message = QStringLiteral(
-                                 "参数「%1」应小于等于 %2。")
+            *error_message = QStringLiteral("参数「%1」应小于等于 %2。")
                                  .arg(display, param.maxValue.trimmed());
           }
           return false;
@@ -274,8 +275,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
       if (!ok) {
         if (error_message) {
           *error_message =
-              QStringLiteral("参数「%1」必须是数值。")
-                  .arg(display);
+              QStringLiteral("参数「%1」必须是数值。").arg(display);
         }
         return false;
       }
@@ -285,8 +285,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
         const double min_value = param.minValue.toDouble(&min_ok);
         if (min_ok && value < min_value) {
           if (error_message) {
-            *error_message = QStringLiteral(
-                                 "参数「%1」应大于等于 %2。")
+            *error_message = QStringLiteral("参数「%1」应大于等于 %2。")
                                  .arg(display, param.minValue.trimmed());
           }
           return false;
@@ -297,8 +296,7 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
         const double max_value = param.maxValue.toDouble(&max_ok);
         if (max_ok && value > max_value) {
           if (error_message) {
-            *error_message = QStringLiteral(
-                                 "参数「%1」应小于等于 %2。")
+            *error_message = QStringLiteral("参数「%1」应小于等于 %2。")
                                  .arg(display, param.maxValue.trimmed());
           }
           return false;
@@ -314,9 +312,8 @@ bool AlgorithmRunTab::collect_input_json(QJsonObject *input_json,
       const bool value = parse_bool(value_text, &ok);
       if (!ok) {
         if (error_message) {
-          *error_message = QStringLiteral(
-                               "参数「%1」必须是布尔值。")
-                               .arg(display);
+          *error_message =
+              QStringLiteral("参数「%1」必须是布尔值。").arg(display);
         }
         return false;
       }
@@ -334,20 +331,19 @@ void AlgorithmRunTab::run_algorithm() {
   QJsonObject input_json;
   QString error_message;
   if (!collect_input_json(&input_json, &error_message)) {
-    MaterialMessageBox::warning(
-        this, QStringLiteral("参数不合法"), error_message);
+    MaterialMessageBox::warning(this, QStringLiteral("参数不合法"),
+                                error_message);
     return;
   }
 
-  const AlgorithmRunResult run_result = algorithm_runner_.run(algorithm_, input_json);
+  const AlgorithmRunResult run_result =
+      algorithm_runner_.run(algorithm_, input_json);
 
   QString output_text;
-  output_text +=
-      QStringLiteral("状态：%1\n")
-          .arg(run_result.success ? QStringLiteral("成功")
-                                  : QStringLiteral("失败"));
-  output_text +=
-      QStringLiteral("耗时：%1 ms\n").arg(run_result.elapsedMs);
+  output_text += QStringLiteral("状态：%1\n")
+                     .arg(run_result.success ? QStringLiteral("成功")
+                                             : QStringLiteral("失败"));
+  output_text += QStringLiteral("耗时：%1 ms\n").arg(run_result.elapsedMs);
   output_text += QStringLiteral("消息：%1\n").arg(run_result.message);
   output_text += QStringLiteral("------------------------------\n");
 
@@ -402,4 +398,3 @@ bool AlgorithmRunTab::parse_bool(const QString &text, bool *ok) const {
   *ok = false;
   return false;
 }
-
