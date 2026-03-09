@@ -162,8 +162,17 @@ void AlgoEditDialog::load_categories() {
 
   const QList<AlgoCategory> categories =
       category_service_.fetch_all_categories();
+
+  QSet<QString> parent_ids;
   for (const AlgoCategory &category : categories) {
-    category_combo_->addItem(category.name, category.id);
+    parent_ids.insert(category.parentId.trimmed());
+  }
+
+  for (const AlgoCategory &category : categories) {
+    const QString id = category.id.trimmed();
+    if (!parent_ids.contains(id) && category.parentId.trimmed() != "0") {
+      category_combo_->addItem(category.name, id);
+    }
   }
 }
 

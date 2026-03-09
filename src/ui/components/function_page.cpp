@@ -35,9 +35,11 @@ void FunctionPage::init_ui() {
   table_model_ = new AlgorithmTableModel(this);
   table_model_->load_data(QString());
   algo_table_->setModel(table_model_);
-  algo_table_->setColumnWidth(0, 80);
+  algo_table_->setColumnWidth(0, 70);
   algo_table_->setColumnWidth(1, 260);
-  algo_table_->setColumnWidth(2, 260);
+  algo_table_->setColumnWidth(2, 110);
+  algo_table_->setColumnWidth(3, 240);
+  algo_table_->setColumnWidth(4, 360);
 
   init_connections();
 }
@@ -92,18 +94,21 @@ void FunctionPage::setup_views() {
   algo_table_ = new QTableView(right_panel_);
   algo_table_->setObjectName("FunctionAlgoTable");
   algo_table_->setFrameShape(QFrame::NoFrame);
-  algo_table_->setAlternatingRowColors(false);
+  algo_table_->setAlternatingRowColors(true);
   algo_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
   algo_table_->setSelectionMode(QAbstractItemView::SingleSelection);
   algo_table_->setContextMenuPolicy(Qt::CustomContextMenu);
   algo_table_->setFocusPolicy(Qt::NoFocus);
   algo_table_->setShowGrid(false);
+
   algo_table_->verticalHeader()->setVisible(false);
   algo_table_->verticalHeader()->setDefaultSectionSize(40);
+
   algo_table_->horizontalHeader()->setStretchLastSection(true);
   algo_table_->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft |
                                                        Qt::AlignVCenter);
   algo_table_->horizontalHeader()->setHighlightSections(false);
+  algo_table_->horizontalHeader()->setMinimumSectionSize(70);
 
   right_layout_->addWidget(algo_table_);
 

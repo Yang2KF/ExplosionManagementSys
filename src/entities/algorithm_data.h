@@ -22,6 +22,7 @@ struct AlgorithmParam {
 struct AlgorithmInfo {
   QString id;
   QString categoryId;
+  QString categoryName;
   QString name;
   QString description;
   QString filePath;
