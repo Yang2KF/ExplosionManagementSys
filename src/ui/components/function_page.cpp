@@ -5,6 +5,15 @@
 #include <QFrame>
 #include <QHeaderView>
 
+namespace {
+QString current_category_id(const QTreeView *tree_view) {
+  if (!tree_view || !tree_view->currentIndex().isValid()) {
+    return QString();
+  }
+  return tree_view->currentIndex().data(Qt::UserRole + 1).toString().trimmed();
+}
+} // namespace
+
 FunctionPage::FunctionPage(QWidget *parent) : QWidget(parent) { init_ui(); }
 
 void FunctionPage::init_ui() {
@@ -26,10 +35,9 @@ void FunctionPage::init_ui() {
   table_model_ = new AlgorithmTableModel(this);
   table_model_->load_data(QString());
   algo_table_->setModel(table_model_);
-
   algo_table_->setColumnWidth(0, 80);
-  algo_table_->setColumnWidth(1, 220);
-  algo_table_->setColumnWidth(2, 180);
+  algo_table_->setColumnWidth(1, 260);
+  algo_table_->setColumnWidth(2, 260);
 
   init_connections();
 }
@@ -39,8 +47,8 @@ void FunctionPage::setup_toolbar() {
   tool_layout_->setSpacing(10);
 
   search_input_ = new MaterialInput(this);
-  search_input_->setPlaceholderText(QStringLiteral("搜索算法名称..."));
-  search_input_->setFixedWidth(300);
+  search_input_->setPlaceholderText(QStringLiteral("搜索算法名称或入口函数..."));
+  search_input_->setFixedWidth(320);
 
   add_btn_ =
       new MaterialButton(QStringLiteral("新增"), MaterialButton::Normal, this);
@@ -69,11 +77,10 @@ void FunctionPage::setup_views() {
   category_tree_->setObjectName("FunctionCategoryTree");
   category_tree_->setHeaderHidden(true);
   category_tree_->setFrameShape(QFrame::NoFrame);
-  category_tree_->setAnimated(true);           // 开启展开/折叠动画
-  category_tree_->setIndentation(16);          // 缩小默认缩进，视觉更紧凑
-  category_tree_->setFocusPolicy(Qt::NoFocus); // 彻底消除点击时的虚线框
-  category_tree_->setEditTriggers(QAbstractItemView::NoEditTriggers); // 只读
-  // 鼠标悬停变为手型（Web风格）
+  category_tree_->setAnimated(true);
+  category_tree_->setIndentation(16);
+  category_tree_->setFocusPolicy(Qt::NoFocus);
+  category_tree_->setEditTriggers(QAbstractItemView::NoEditTriggers);
   category_tree_->setCursor(Qt::PointingHandCursor);
 
   right_panel_ = new QWidget(splitter_);
@@ -88,18 +95,14 @@ void FunctionPage::setup_views() {
   algo_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
   algo_table_->setSelectionMode(QAbstractItemView::SingleSelection);
   algo_table_->setContextMenuPolicy(Qt::CustomContextMenu);
-  algo_table_->verticalHeader()->setVisible(false);
-  algo_table_->horizontalHeader()->setStretchLastSection(true);
   algo_table_->setFocusPolicy(Qt::NoFocus);
   algo_table_->setShowGrid(false);
-
   algo_table_->verticalHeader()->setVisible(false);
-  algo_table_->verticalHeader()->setDefaultSectionSize(40); // 增加行高
+  algo_table_->verticalHeader()->setDefaultSectionSize(40);
   algo_table_->horizontalHeader()->setStretchLastSection(true);
-  algo_table_->horizontalHeader()->setDefaultAlignment(
-      Qt::AlignLeft | Qt::AlignVCenter); // 表头左对齐更清爽
-  algo_table_->horizontalHeader()->setHighlightSections(
-      false); // 点击列表头不加粗
+  algo_table_->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft |
+                                                       Qt::AlignVCenter);
+  algo_table_->horizontalHeader()->setHighlightSections(false);
 
   right_layout_->addWidget(algo_table_);
 
@@ -114,22 +117,24 @@ void FunctionPage::setup_views() {
 void FunctionPage::init_connections() {
   connect(category_tree_, &QTreeView::clicked, this,
           [this](const QModelIndex &index) {
-            const QVariant id_data = index.data(Qt::UserRole + 1);
-            if (id_data.isValid()) {
-              table_model_->load_data(id_data.toString());
-            } else {
-              table_model_->load_data(QString());
-            }
+            const QString category_id =
+                index.data(Qt::UserRole + 1).toString().trimmed();
+            table_model_->load_data(category_id);
           });
 
   connect(refresh_btn_, &QPushButton::clicked, this, [this]() {
     tree_model_->reload();
-    table_model_->load_data(QString());
+    table_model_->load_data(current_category_id(category_tree_));
     category_tree_->expandAll();
   });
 
   connect(search_input_, &QLineEdit::returnPressed, this, [this]() {
-    table_model_->search_data(search_input_->text().trimmed());
+    const QString keyword = search_input_->text().trimmed();
+    if (keyword.isEmpty()) {
+      table_model_->load_data(current_category_id(category_tree_));
+      return;
+    }
+    table_model_->search_data(keyword);
   });
 
   connect(add_btn_, &QPushButton::clicked, this, [this]() {
@@ -141,7 +146,7 @@ void FunctionPage::init_connections() {
     const AlgorithmInfo info = dlg.get_data();
     QString error_message;
     if (algorithm_service_.create_algorithm(info, &error_message)) {
-      table_model_->load_data(QString());
+      table_model_->load_data(current_category_id(category_tree_));
       MaterialMessageBox::information(this, QStringLiteral("成功"),
                                       QStringLiteral("算法已新增。"));
     } else {
@@ -242,7 +247,7 @@ void FunctionPage::edit_algorithm_by_row(int row) {
   new_info.id = info.id;
   QString error_message;
   if (algorithm_service_.update_algorithm(new_info, &error_message)) {
-    table_model_->load_data(QString());
+    table_model_->load_data(current_category_id(category_tree_));
   } else {
     MaterialMessageBox::error(this, QStringLiteral("失败"),
                               QStringLiteral("更新失败：") + error_message);
@@ -261,18 +266,16 @@ void FunctionPage::delete_algorithm_by_row(int row) {
     return;
   }
 
-  const QString algo_id = info.id;
-  const QString algo_name = info.name;
   const int reply = MaterialMessageBox::question(
       this, QStringLiteral("确认删除"),
-      QStringLiteral("确认删除算法「%1」？此操作不可撤销。").arg(algo_name));
+      QStringLiteral("确认删除算法“%1”？此操作不可撤销。").arg(info.name));
   if (reply != QDialog::Accepted) {
     return;
   }
 
   QString error_message;
-  if (algorithm_service_.delete_algorithm(algo_id, &error_message)) {
-    table_model_->load_data(QString());
+  if (algorithm_service_.delete_algorithm(info.id, &error_message)) {
+    table_model_->load_data(current_category_id(category_tree_));
   } else {
     MaterialMessageBox::error(this, QStringLiteral("失败"),
                               QStringLiteral("删除失败：") + error_message);

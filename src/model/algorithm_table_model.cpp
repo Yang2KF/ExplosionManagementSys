@@ -6,34 +6,30 @@
 
 AlgorithmTableModel::AlgorithmTableModel(QObject *parent)
     : QAbstractTableModel(parent) {
-  headers_ << "编号" << "算法名称" << "调用标识" << "创建时间";
+  headers_ << QStringLiteral("编号") << QStringLiteral("算法名称")
+           << QStringLiteral("调用标识");
 }
 
 int AlgorithmTableModel::rowCount(const QModelIndex &parent) const {
-  if (parent.isValid()) {
-    return 0;
-  }
-  return data_list_.size();
+  return parent.isValid() ? 0 : data_list_.size();
 }
 
 int AlgorithmTableModel::columnCount(const QModelIndex &parent) const {
-  if (parent.isValid()) {
-    return 0;
-  }
-  return headers_.size();
+  return parent.isValid() ? 0 : headers_.size();
 }
 
 QVariant AlgorithmTableModel::headerData(int section,
                                          Qt::Orientation orientation,
                                          int role) const {
-  if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
+  if (role == Qt::DisplayRole && orientation == Qt::Horizontal &&
+      section >= 0 && section < headers_.size()) {
     return headers_.at(section);
   }
   return QVariant{};
 }
 
 QVariant AlgorithmTableModel::data(const QModelIndex &index, int role) const {
-  if (!index.isValid() || index.row() >= data_list_.size()) {
+  if (!index.isValid() || index.row() < 0 || index.row() >= data_list_.size()) {
     return QVariant{};
   }
 
@@ -42,13 +38,11 @@ QVariant AlgorithmTableModel::data(const QModelIndex &index, int role) const {
   if (role == Qt::DisplayRole) {
     switch (index.column()) {
     case 0:
-      return item.displayId;
+      return index.row() + 1;
     case 1:
       return item.name;
     case 2:
       return item.funcName;
-    case 3:
-      return item.createdAt.toString("yyyy-MM-dd HH:mm");
     default:
       return QVariant{};
     }
@@ -72,35 +66,44 @@ void AlgorithmTableModel::load_data(const QString &category_id) {
   QSqlQuery query(db);
 
   QString sql =
-      "SELECT ID, ALGID, ALGNAME, COMMENTS, CALLID, CREATED_AT, CLSID, SRC, "
-      "SRC_TYPE "
+      "SELECT ALGID, CATEGORY_ID, ALGNAME, COMMENTS, ENTRY_FUNC, SRC, SRC_TYPE "
       "FROM algorithms";
-  if (!category_id.isEmpty()) {
-    sql += " WHERE CLSID = :cid";
-  }
-  sql += " ORDER BY ID ASC";
-  query.prepare(sql);
 
-  if (!category_id.isEmpty()) {
-    query.bindValue(":cid", category_id);
+  const QString trimmed_category_id = category_id.trimmed();
+  if (!trimmed_category_id.isEmpty()) {
+    QString error_message;
+    const QStringList category_ids =
+        category_service_.fetch_subtree_ids(trimmed_category_id, &error_message);
+    if (!error_message.isEmpty()) {
+      qDebug() << "Fetch category subtree failed:" << error_message;
+    }
+
+    if (category_ids.isEmpty()) {
+      endResetModel();
+      return;
+    }
+
+    QStringList placeholders;
+    placeholders.reserve(category_ids.size());
+    for (int i = 0; i < category_ids.size(); ++i) {
+      placeholders.append("?");
+    }
+
+    sql += " WHERE CATEGORY_ID IN (" + placeholders.join(", ") + ")";
+    sql += " ORDER BY ALGNAME ASC";
+    query.prepare(sql);
+    for (const QString &id : category_ids) {
+      query.addBindValue(id);
+    }
+  } else {
+    sql += " ORDER BY ALGNAME ASC";
+    query.prepare(sql);
   }
 
   if (query.exec()) {
-    while (query.next()) {
-      AlgorithmInfo info;
-      info.displayId = query.value("ID").toLongLong();
-      info.id = query.value("ALGID").toString();
-      info.name = query.value("ALGNAME").toString();
-      info.description = query.value("COMMENTS").toString();
-      info.funcName = query.value("CALLID").toString();
-      info.createdAt = query.value("CREATED_AT").toDateTime();
-      info.categoryId = query.value("CLSID").toString();
-      info.filePath = query.value("SRC").toString();
-      info.sourceType = query.value("SRC_TYPE").toString();
-      data_list_.append(info);
-    }
+    load_from_query(&query);
   } else {
-    qDebug() << "加载算法数据失败：" << query.lastError();
+    qDebug() << "Load algorithms failed:" << query.lastError().text();
   }
 
   endResetModel();
@@ -112,25 +115,17 @@ void AlgorithmTableModel::search_data(const QString &keyword) {
 
   QSqlDatabase db = DBManager::instance().database();
   QSqlQuery query(db);
-  query.prepare(
-      "SELECT ID, ALGID, ALGNAME, COMMENTS, CALLID, CREATED_AT, CLSID, SRC, "
-      "SRC_TYPE FROM algorithms WHERE ALGNAME LIKE :key ORDER BY ID ASC");
-  query.bindValue(":key", "%" + keyword + "%");
+  query.prepare("SELECT ALGID, CATEGORY_ID, ALGNAME, COMMENTS, ENTRY_FUNC, SRC, "
+                "SRC_TYPE "
+                "FROM algorithms "
+                "WHERE ALGNAME LIKE :keyword OR ENTRY_FUNC LIKE :keyword "
+                "ORDER BY ALGNAME ASC");
+  query.bindValue(":keyword", "%" + keyword.trimmed() + "%");
 
   if (query.exec()) {
-    while (query.next()) {
-      AlgorithmInfo info;
-      info.displayId = query.value("ID").toLongLong();
-      info.id = query.value("ALGID").toString();
-      info.name = query.value("ALGNAME").toString();
-      info.description = query.value("COMMENTS").toString();
-      info.funcName = query.value("CALLID").toString();
-      info.createdAt = query.value("CREATED_AT").toDateTime();
-      info.categoryId = query.value("CLSID").toString();
-      info.filePath = query.value("SRC").toString();
-      info.sourceType = query.value("SRC_TYPE").toString();
-      data_list_.append(info);
-    }
+    load_from_query(&query);
+  } else {
+    qDebug() << "Search algorithms failed:" << query.lastError().text();
   }
 
   endResetModel();
@@ -141,4 +136,22 @@ AlgorithmInfo AlgorithmTableModel::get_item(int row) const {
     return data_list_.at(row);
   }
   return AlgorithmInfo{};
+}
+
+void AlgorithmTableModel::load_from_query(QSqlQuery *query) {
+  if (!query) {
+    return;
+  }
+
+  while (query->next()) {
+    AlgorithmInfo info;
+    info.id = query->value("ALGID").toString();
+    info.categoryId = query->value("CATEGORY_ID").toString();
+    info.name = query->value("ALGNAME").toString();
+    info.description = query->value("COMMENTS").toString();
+    info.funcName = query->value("ENTRY_FUNC").toString();
+    info.filePath = query->value("SRC").toString();
+    info.sourceType = query->value("SRC_TYPE").toString();
+    data_list_.append(info);
+  }
 }

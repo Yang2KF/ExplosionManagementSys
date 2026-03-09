@@ -1,36 +1,25 @@
 #pragma once
 
-#include <QCoreApplication>
-#include <QDebug>
-#include <QDir>
 #include <QSqlDatabase>
-#include <QSqlError>
-#include <QSqlQuery>
-#include <QStandardPaths>
+#include <QString>
 
 class DBManager {
 public:
-  DBManager(const DBManager &) = delete;            // 禁用拷贝构造
-  DBManager &operator=(const DBManager &) = delete; // 禁用赋值操作
+  DBManager(const DBManager &) = delete;
+  DBManager &operator=(const DBManager &) = delete;
 
   static DBManager &instance();
 
   bool init();
-
   void close();
-
   QSqlDatabase database();
 
 private:
   DBManager();
-  ~DBManager() = default; // 析构不再做任何数据库操作
+  ~DBManager() = default;
 
   bool create_tables();
-  bool ensure_column_exists(QSqlDatabase &db, const QString &table_name,
-                            const QString &column_name,
-                            const QString &column_definition);
   void seed_data();
 
-  const QString DB_NAME = "explosion_algo.db";
   const QString CONN_NAME = "ExplosionConnection";
 };

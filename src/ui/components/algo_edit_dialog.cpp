@@ -36,13 +36,13 @@ void AlgoEditDialog::done(int r) {
 }
 
 void AlgoEditDialog::init_ui() {
-  QVBoxLayout *main_layout = new QVBoxLayout(this);
+  auto *main_layout = new QVBoxLayout(this);
   main_layout->setContentsMargins(10, 10, 10, 10);
 
-  QWidget *container = new QWidget(this);
+  auto *container = new QWidget(this);
   container->setObjectName("AlgoEditDialogContainer");
 
-  QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
+  auto *shadow = new QGraphicsDropShadowEffect(this);
   shadow->setBlurRadius(20);
   shadow->setColor(QColor(0, 0, 0, 60));
   shadow->setOffset(0, 5);
@@ -50,16 +50,16 @@ void AlgoEditDialog::init_ui() {
 
   main_layout->addWidget(container);
 
-  QVBoxLayout *content_layout = new QVBoxLayout(container);
+  auto *content_layout = new QVBoxLayout(container);
   content_layout->setContentsMargins(30, 30, 30, 30);
   content_layout->setSpacing(20);
 
-  QLabel *title = new QLabel("算法信息", this);
+  auto *title = new QLabel(QStringLiteral("算法信息"), this);
   title->setObjectName("AlgoEditDialogTitle");
   content_layout->addWidget(title);
 
   name_input_ = new MaterialInput(this);
-  name_input_->setPlaceholderText("算法名称");
+  name_input_->setPlaceholderText(QStringLiteral("算法名称"));
   content_layout->addWidget(name_input_);
 
   category_combo_ = new QComboBox(this);
@@ -70,11 +70,11 @@ void AlgoEditDialog::init_ui() {
   source_type_combo_ = new QComboBox(this);
   source_type_combo_->setObjectName("AlgoEditSourceTypeCombo");
   source_type_combo_->setFixedHeight(40);
-  source_type_combo_->addItem("动态库 DLL", "1");
-  source_type_combo_->addItem("Python 脚本", "2");
+  source_type_combo_->addItem(QStringLiteral("动态库 DLL"), "dll");
+  source_type_combo_->addItem(QStringLiteral("Python 脚本"), "python");
   content_layout->addWidget(source_type_combo_);
 
-  QHBoxLayout *path_layout = new QHBoxLayout();
+  auto *path_layout = new QHBoxLayout();
   path_input_ = new MaterialInput(this);
 
   path_btn_ = new MaterialButton("...", MaterialButton::Normal, this);
@@ -86,23 +86,25 @@ void AlgoEditDialog::init_ui() {
   content_layout->addLayout(path_layout);
 
   func_input_ = new MaterialInput(this);
-  func_input_->setPlaceholderText("导出函数名");
+  func_input_->setPlaceholderText(QStringLiteral("导出函数名"));
   content_layout->addWidget(func_input_);
 
   desc_input_ = new MaterialInput(this);
-  desc_input_->setPlaceholderText("算法说明");
+  desc_input_->setPlaceholderText(QStringLiteral("算法说明"));
   content_layout->addWidget(desc_input_);
 
   content_layout->addStretch();
 
-  QHBoxLayout *btn_layout = new QHBoxLayout();
+  auto *btn_layout = new QHBoxLayout();
   btn_layout->addStretch();
 
-  cancel_btn_ = new MaterialButton("取消", MaterialButton::Normal, this);
+  cancel_btn_ = new MaterialButton(QStringLiteral("取消"),
+                                   MaterialButton::Normal, this);
   cancel_btn_->set_theme_color(UISystem::instance().neutral());
   cancel_btn_->setFixedSize(80, 35);
 
-  confirm_btn_ = new MaterialButton("保存", MaterialButton::Normal, this);
+  confirm_btn_ = new MaterialButton(QStringLiteral("保存"),
+                                    MaterialButton::Normal, this);
   confirm_btn_->set_theme_color(UISystem::instance().bg_primary());
   confirm_btn_->setFixedSize(80, 35);
 
@@ -113,27 +115,36 @@ void AlgoEditDialog::init_ui() {
   connect(cancel_btn_, &QPushButton::clicked, this, &QDialog::reject);
 
   connect(confirm_btn_, &QPushButton::clicked, this, [this]() {
-    if (name_input_->text().isEmpty() || category_combo_->currentData().isNull()) {
-      MaterialMessageBox::warning(this, "提示", "请输入算法名称并选择分类。");
+    if (name_input_->text().trimmed().isEmpty() ||
+        category_combo_->currentData().toString().trimmed().isEmpty()) {
+      MaterialMessageBox::warning(this, QStringLiteral("提示"),
+                                  QStringLiteral("请输入算法名称并选择分类。"));
       return;
     }
     if (path_input_->text().trimmed().isEmpty()) {
-      MaterialMessageBox::warning(this, "提示", "请输入算法文件路径。");
+      MaterialMessageBox::warning(this, QStringLiteral("提示"),
+                                  QStringLiteral("请输入算法文件路径。"));
       return;
     }
     if (func_input_->text().trimmed().isEmpty()) {
-      MaterialMessageBox::warning(this, "提示", "请输入入口函数名。");
+      MaterialMessageBox::warning(this, QStringLiteral("提示"),
+                                  QStringLiteral("请输入入口函数名。"));
       return;
     }
     accept();
   });
 
   connect(path_btn_, &QPushButton::clicked, this, [this]() {
-    const bool is_python = source_type_combo_->currentData().toString() == "2";
-    const QString title = is_python ? "选择Python脚本" : "选择动态库文件";
+    const bool is_python =
+        source_type_combo_->currentData().toString() == "python";
+    const QString title =
+        is_python ? QStringLiteral("选择 Python 脚本")
+                  : QStringLiteral("选择动态库文件");
     const QString filter =
-        is_python ? "Python 脚本 (*.py)" : "动态库文件 (*.dll *.so *.dylib)";
-    QString path = QFileDialog::getOpenFileName(this, title, QString(), filter);
+        is_python ? QStringLiteral("Python 脚本 (*.py)")
+                  : QStringLiteral("动态库文件 (*.dll *.so *.dylib)");
+    const QString path =
+        QFileDialog::getOpenFileName(this, title, QString(), filter);
     if (!path.isEmpty()) {
       path_input_->setText(path);
     }
@@ -147,9 +158,9 @@ void AlgoEditDialog::init_ui() {
 
 void AlgoEditDialog::load_categories() {
   category_combo_->clear();
-  category_combo_->addItem("请选择算法分类...", QVariant());
+  category_combo_->addItem(QStringLiteral("请选择算法分类..."), QVariant());
 
-  QList<AlgoCategory> categories = category_service_.fetch_all_categories();
+  const QList<AlgoCategory> categories = category_service_.fetch_all_categories();
   for (const AlgoCategory &category : categories) {
     category_combo_->addItem(category.name, category.id);
   }
@@ -158,12 +169,12 @@ void AlgoEditDialog::load_categories() {
 AlgorithmInfo AlgoEditDialog::get_data() const {
   AlgorithmInfo info;
   info.id = current_algo_id_;
-  info.name = name_input_->text();
-  info.categoryId = category_combo_->currentData().toString();
-  info.sourceType = source_type_combo_->currentData().toString();
-  info.filePath = path_input_->text();
-  info.funcName = func_input_->text();
-  info.description = desc_input_->text();
+  info.name = name_input_->text().trimmed();
+  info.categoryId = category_combo_->currentData().toString().trimmed();
+  info.sourceType = source_type_combo_->currentData().toString().trimmed();
+  info.filePath = path_input_->text().trimmed();
+  info.funcName = func_input_->text().trimmed();
+  info.description = desc_input_->text().trimmed();
   return info;
 }
 
@@ -174,22 +185,25 @@ void AlgoEditDialog::set_data(const AlgorithmInfo &info) {
   func_input_->setText(info.funcName);
   desc_input_->setText(info.description);
 
-  int source_index = source_type_combo_->findData(info.sourceType);
-  if (source_index == -1) {
-    source_index = 0;
+  int source_index = source_type_combo_->findData(info.sourceType.trimmed());
+  if (source_index < 0) {
+    source_index = (info.sourceType.trimmed() == "2") ? 1 : 0;
   }
   source_type_combo_->setCurrentIndex(source_index);
   update_source_type_ui();
 
-  int index = category_combo_->findData(info.categoryId);
-  if (index != -1) {
-    category_combo_->setCurrentIndex(index);
+  const int category_index = category_combo_->findData(info.categoryId);
+  if (category_index >= 0) {
+    category_combo_->setCurrentIndex(category_index);
   }
 }
 
 void AlgoEditDialog::update_source_type_ui() {
-  const bool is_python = source_type_combo_->currentData().toString() == "2";
+  const bool is_python = source_type_combo_->currentData().toString() == "python";
   path_input_->setPlaceholderText(
-      is_python ? "Python脚本路径（.py）" : "算法库路径（.dll）");
-  func_input_->setPlaceholderText(is_python ? "Python函数名" : "导出函数名");
+      is_python ? QStringLiteral("Python 脚本路径（.py）")
+                : QStringLiteral("算法库路径（.dll/.so/.dylib）"));
+  func_input_->setPlaceholderText(
+      is_python ? QStringLiteral("Python 函数名")
+                : QStringLiteral("导出函数名"));
 }
