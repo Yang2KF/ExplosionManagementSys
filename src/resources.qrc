@@ -33,6 +33,9 @@
     <qresource prefix="/icons">
         <file alias="arrow_right_line">../images/arrow-right-s-line.svg</file>
     </qresource>
+    <qresource prefix="/icons">
+        <file alias="search_icon_line">../images/search-line.svg</file>
+    </qresource>
     
     <qresource prefix="/icons">
         <file alias="home_icon_fill">../images/home-fill.svg</file>
@@ -48,6 +51,9 @@
     </qresource>
     <qresource prefix="/icons">
         <file alias="code_icon_fill">../images/code-fill.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="search_icon_fill">../images/search-fill.svg</file>
     </qresource>
 
     <qresource prefix="/styles">

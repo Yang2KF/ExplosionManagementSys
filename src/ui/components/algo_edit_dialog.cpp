@@ -58,7 +58,7 @@ void AlgoEditDialog::init_ui() {
   title->setObjectName("AlgoEditDialogTitle");
   content_layout->addWidget(title);
 
-  name_input_ = new MaterialInput(this);
+  name_input_ = new MaterialInput(MaterialInput::Edit, this);
   name_input_->setPlaceholderText(QStringLiteral("算法名称"));
   content_layout->addWidget(name_input_);
 
@@ -75,7 +75,7 @@ void AlgoEditDialog::init_ui() {
   content_layout->addWidget(source_type_combo_);
 
   auto *path_layout = new QHBoxLayout();
-  path_input_ = new MaterialInput(this);
+  path_input_ = new MaterialInput(MaterialInput::Edit, this);
 
   path_btn_ = new MaterialButton("...", MaterialButton::Normal, this);
   path_btn_->setFixedSize(40, 40);
@@ -85,11 +85,11 @@ void AlgoEditDialog::init_ui() {
   path_layout->addWidget(path_btn_);
   content_layout->addLayout(path_layout);
 
-  func_input_ = new MaterialInput(this);
+  func_input_ = new MaterialInput(MaterialInput::Edit, this);
   func_input_->setPlaceholderText(QStringLiteral("导出函数名"));
   content_layout->addWidget(func_input_);
 
-  desc_input_ = new MaterialInput(this);
+  desc_input_ = new MaterialInput(MaterialInput::Edit, this);
   desc_input_->setPlaceholderText(QStringLiteral("算法说明"));
   content_layout->addWidget(desc_input_);
 
@@ -98,13 +98,13 @@ void AlgoEditDialog::init_ui() {
   auto *btn_layout = new QHBoxLayout();
   btn_layout->addStretch();
 
-  cancel_btn_ = new MaterialButton(QStringLiteral("取消"),
-                                   MaterialButton::Normal, this);
+  cancel_btn_ =
+      new MaterialButton(QStringLiteral("取消"), MaterialButton::Normal, this);
   cancel_btn_->set_theme_color(UISystem::instance().neutral());
   cancel_btn_->setFixedSize(80, 35);
 
-  confirm_btn_ = new MaterialButton(QStringLiteral("保存"),
-                                    MaterialButton::Normal, this);
+  confirm_btn_ =
+      new MaterialButton(QStringLiteral("保存"), MaterialButton::Normal, this);
   confirm_btn_->set_theme_color(UISystem::instance().bg_primary());
   confirm_btn_->setFixedSize(80, 35);
 
@@ -137,9 +137,8 @@ void AlgoEditDialog::init_ui() {
   connect(path_btn_, &QPushButton::clicked, this, [this]() {
     const bool is_python =
         source_type_combo_->currentData().toString() == "python";
-    const QString title =
-        is_python ? QStringLiteral("选择 Python 脚本")
-                  : QStringLiteral("选择动态库文件");
+    const QString title = is_python ? QStringLiteral("选择 Python 脚本")
+                                    : QStringLiteral("选择动态库文件");
     const QString filter =
         is_python ? QStringLiteral("Python 脚本 (*.py)")
                   : QStringLiteral("动态库文件 (*.dll *.so *.dylib)");
@@ -150,8 +149,9 @@ void AlgoEditDialog::init_ui() {
     }
   });
 
-  connect(source_type_combo_, QOverload<int>::of(&QComboBox::currentIndexChanged),
-          this, [this](int) { update_source_type_ui(); });
+  connect(source_type_combo_,
+          QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          [this](int) { update_source_type_ui(); });
 
   update_source_type_ui();
 }
@@ -160,7 +160,8 @@ void AlgoEditDialog::load_categories() {
   category_combo_->clear();
   category_combo_->addItem(QStringLiteral("请选择算法分类..."), QVariant());
 
-  const QList<AlgoCategory> categories = category_service_.fetch_all_categories();
+  const QList<AlgoCategory> categories =
+      category_service_.fetch_all_categories();
   for (const AlgoCategory &category : categories) {
     category_combo_->addItem(category.name, category.id);
   }
@@ -199,11 +200,11 @@ void AlgoEditDialog::set_data(const AlgorithmInfo &info) {
 }
 
 void AlgoEditDialog::update_source_type_ui() {
-  const bool is_python = source_type_combo_->currentData().toString() == "python";
+  const bool is_python =
+      source_type_combo_->currentData().toString() == "python";
   path_input_->setPlaceholderText(
       is_python ? QStringLiteral("Python 脚本路径（.py）")
                 : QStringLiteral("算法库路径（.dll/.so/.dylib）"));
-  func_input_->setPlaceholderText(
-      is_python ? QStringLiteral("Python 函数名")
-                : QStringLiteral("导出函数名"));
+  func_input_->setPlaceholderText(is_python ? QStringLiteral("Python 函数名")
+                                            : QStringLiteral("导出函数名"));
 }

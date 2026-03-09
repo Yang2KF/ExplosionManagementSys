@@ -165,7 +165,8 @@ void AlgorithmRunTab::rebuild_param_form() {
     auto *name_label = new QLabel(display_name(param), param_form_widget_);
     name_label->setObjectName("FunctionParamLabel");
 
-    auto *value_input = new MaterialInput(param_form_widget_);
+    auto *value_input =
+        new MaterialInput(MaterialInput::Edit, param_form_widget_);
     value_input->setPlaceholderText(param.identifier.isEmpty()
                                         ? QStringLiteral("请输入参数值")
                                         : param.identifier);

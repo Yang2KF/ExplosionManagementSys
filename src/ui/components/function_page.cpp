@@ -46,8 +46,9 @@ void FunctionPage::setup_toolbar() {
   tool_layout_ = new QHBoxLayout();
   tool_layout_->setSpacing(10);
 
-  search_input_ = new MaterialInput(this);
-  search_input_->setPlaceholderText(QStringLiteral("搜索算法名称或入口函数..."));
+  search_input_ = new MaterialInput(MaterialInput::Search, this);
+  search_input_->setPlaceholderText(
+      QStringLiteral("搜索算法名称或入口函数..."));
   search_input_->setFixedWidth(320);
 
   add_btn_ =

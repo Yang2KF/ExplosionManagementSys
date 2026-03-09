@@ -2,58 +2,110 @@
 #include "ui_system.h"
 #include <QPainter>
 
-MaterialInput::MaterialInput(QWidget *parent)
-    : QLineEdit(parent), line_progress_(0.0) {
+namespace {
+// 改造后的染色函数，增加尺寸对齐
+QIcon tint_icon(const QIcon &icon, const QSize &target_size,
+                const QColor &color) {
+  // 强制获取目标尺寸的 pixmap
+  QPixmap pixmap = icon.pixmap(target_size);
+  if (pixmap.isNull()) {
+    return QIcon();
+  }
 
-  setFixedHeight(40); // 留出足够的高度画底部线条
+  QPainter painter(&pixmap);
+  painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+  painter.fillRect(pixmap.rect(), color);
+  painter.end();
+  return QIcon(pixmap); // 返回一个包含染色后 Pixmap 的新 QIcon
+}
+} // namespace
 
-  active_color_ = UISystem::instance().bg_primary();
-  line_animation_ = new QPropertyAnimation(this, "lineProgress");
-  line_animation_->setDuration(300);
-  line_animation_->setEasingCurve(QEasingCurve::OutCurve);
+MaterialInput::MaterialInput(InputType type, QWidget *parent)
+    : QLineEdit(parent), input_type_(type), line_progress_(0.0) {
+
+  if (input_type_ == Edit) {
+    setObjectName("MaterialEditInput");
+    setFixedHeight(40);
+    active_color_ = UISystem::instance().bg_primary();
+    line_animation_ = new QPropertyAnimation(this, "lineProgress");
+    line_animation_->setDuration(300);
+    line_animation_->setEasingCurve(QEasingCurve::OutCurve);
+  } else {
+    setObjectName("MaterialSearchInput");
+    setFixedHeight(38);
+    setClearButtonEnabled(true);
+
+    search_action_ = new QAction(this);
+    this->addAction(search_action_, QLineEdit::LeadingPosition);
+    setTextMargins(4, 0, 0, 0);
+
+    connect(this, &QLineEdit::textChanged, this,
+            [this](const QString &) { update_search_icon(); });
+    update_search_icon();
+  }
 }
 
 void MaterialInput::paintEvent(QPaintEvent *event) {
-  // 先绘制原生输入框
   QLineEdit::paintEvent(event);
 
+  if (input_type_ == Search)
+    return;
+
   QPainter painter(this);
-  // 绘制底部的灰色背景线
-  painter.setPen(QPen{UISystem::instance().line(), 1});
-  painter.drawLine(0, height() - 1, width(), height() - 1);
+  painter.setRenderHint(QPainter::Antialiasing, false);
 
-  // 绘制中间向两边扩散的蓝色激活线
+  painter.fillRect(0, height() - 1, width(), 1, UISystem::instance().line());
   if (line_progress_ > 0.0) {
-    painter.setPen(QPen{active_color_, 2}); // 激活时线宽为2
+    int line_width = static_cast<int>(width() * line_progress_);
+    int start_x = (width() - line_width) / 2;
 
-    int center = width() / 2;
-    int halfWidth = (width() * line_progress_) / 2;
-
-    // 从中心向两边画线
-    painter.drawLine(center - halfWidth, height() - 1, center + halfWidth,
-                     height() - 1);
+    painter.fillRect(start_x, height() - 2, line_width, 2, active_color_);
   }
 }
 
 void MaterialInput::focusInEvent(QFocusEvent *event) {
-  QLineEdit::focusInEvent(event); // 保持光标显示
-  // 启动动画：从中心展开
-  line_animation_->stop();
-  line_animation_->setStartValue(0.0);
-  line_animation_->setEndValue(1.0);
-  line_animation_->start();
+  QLineEdit::focusInEvent(event);
+
+  if (input_type_ == Search && search_action_) {
+    update_search_icon();
+  }
+  if (input_type_ == Edit && line_animation_) {
+    line_animation_->stop();
+    line_animation_->setStartValue(0.0);
+    line_animation_->setEndValue(1.0);
+    line_animation_->start();
+  }
 }
 
 void MaterialInput::focusOutEvent(QFocusEvent *event) {
   QLineEdit::focusOutEvent(event);
-  // 启动动画：收缩回中心
-  line_animation_->stop();
-  line_animation_->setStartValue(1.0);
-  line_animation_->setEndValue(0.0);
-  line_animation_->start();
+
+  if (input_type_ == Search && search_action_) {
+    update_search_icon();
+  }
+  if (input_type_ == Edit && line_animation_) {
+    line_animation_->stop();
+    line_animation_->setStartValue(1.0);
+    line_animation_->setEndValue(0.0);
+    line_animation_->start();
+  }
 }
 
 void MaterialInput::set_line_progress(float p) {
   line_progress_ = p;
   update(); // 触发重绘
+}
+
+void MaterialInput::update_search_icon() {
+  if (input_type_ != Search || !search_action_) {
+    return;
+  }
+
+  const bool focused = hasFocus();
+  const bool has_text = !text().trimmed().isEmpty();
+  const QColor icon_color =
+      (focused || has_text) ? UISystem::instance().icon_active()
+                            : UISystem::instance().text_secondary();
+  const QIcon base_icon = UISystem::instance().search_icon();
+  search_action_->setIcon(tint_icon(base_icon, QSize(16, 16), icon_color));
 }
