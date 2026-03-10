@@ -5,12 +5,15 @@
 #include <QFormLayout>
 #include <QFrame>
 #include <QHBoxLayout>
+#include <QHeaderView>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QLabel>
 #include <QLayoutItem>
 #include <QScrollArea>
 #include <QSplitter>
-#include <QTextEdit>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 #include <QVBoxLayout>
 
 AlgorithmRunTab::AlgorithmRunTab(const AlgorithmInfo &algorithm,
@@ -111,13 +114,29 @@ void AlgorithmRunTab::init_ui() {
   auto *result_title = new QLabel(QStringLiteral("运行结果"), right_panel);
   result_title->setObjectName("FunctionRunnerTitle");
 
-  result_output_ = new QTextEdit(right_panel);
-  result_output_->setObjectName("FunctionRunnerResult");
-  result_output_->setReadOnly(true);
-  result_output_->setPlaceholderText(QStringLiteral("运行结果将在此处显示。"));
+  result_table_ = new QTableWidget(right_panel);
+  result_table_->setObjectName("FunctionRunnerResultTable");
+  result_table_->setColumnCount(2);
+  result_table_->setHorizontalHeaderLabels(
+      {QStringLiteral("字段"), QStringLiteral("值")});
+  result_table_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  result_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
+  result_table_->setSelectionMode(QAbstractItemView::SingleSelection);
+  result_table_->setAlternatingRowColors(true);
+  result_table_->setWordWrap(true);
+  result_table_->verticalHeader()->setVisible(false);
+  result_table_->horizontalHeader()->setStretchLastSection(true);
+  result_table_->horizontalHeader()->setMinimumSectionSize(80);
+  result_table_->horizontalHeader()->resizeSection(0, 220);
+  result_table_->setShowGrid(false);
+  result_table_->setFrameShape(QFrame::NoFrame);
 
   right_layout->addWidget(result_title);
-  right_layout->addWidget(result_output_, 1);
+  right_layout->addWidget(result_table_, 1);
+
+  AlgorithmRunResult initial_result;
+  initial_result.message = QStringLiteral("等待运行。");
+  render_result(initial_result);
 
   splitter->addWidget(left_panel);
   splitter->addWidget(right_panel);
@@ -136,8 +155,9 @@ void AlgorithmRunTab::load_params() {
   reset_param_inputs();
 
   if (!error_message.isEmpty()) {
-    result_output_->setPlainText(QStringLiteral("加载参数定义失败：") +
-                                 error_message);
+    AlgorithmRunResult run_result;
+    run_result.message = QStringLiteral("加载参数定义失败：") + error_message;
+    render_result(run_result);
   }
 }
 
@@ -333,25 +353,144 @@ void AlgorithmRunTab::run_algorithm() {
 
   const AlgorithmRunResult run_result =
       algorithm_runner_.run(algorithm_, input_json);
+  render_result(run_result);
+}
 
-  QString output_text;
-  output_text += QStringLiteral("状态：%1\n")
-                     .arg(run_result.success ? QStringLiteral("成功")
-                                             : QStringLiteral("失败"));
-  output_text += QStringLiteral("耗时：%1 ms\n").arg(run_result.elapsedMs);
-  output_text += QStringLiteral("消息：%1\n").arg(run_result.message);
-  output_text += QStringLiteral("------------------------------\n");
-
-  if (!run_result.outputJson.isEmpty()) {
-    output_text += QString::fromUtf8(
-        QJsonDocument(run_result.outputJson).toJson(QJsonDocument::Indented));
-  } else if (!run_result.rawOutput.trimmed().isEmpty()) {
-    output_text += run_result.rawOutput;
-  } else {
-    output_text += QStringLiteral("无输出内容。");
+void AlgorithmRunTab::render_result(const AlgorithmRunResult &run_result) {
+  if (!result_table_) {
+    return;
   }
 
-  result_output_->setPlainText(output_text);
+  QList<QPair<QString, QString>> rows;
+  const bool is_pending =
+      !run_result.success && run_result.elapsedMs == 0 &&
+      run_result.outputJson.isEmpty() && run_result.rawOutput.trimmed().isEmpty() &&
+      run_result.message.trimmed() == QStringLiteral("等待运行。");
+  rows.append({QStringLiteral("状态"),
+               is_pending ? QStringLiteral("未运行")
+                          : (run_result.success ? QStringLiteral("成功")
+                                                : QStringLiteral("失败"))});
+  rows.append(
+      {QStringLiteral("耗时(ms)"), QString::number(run_result.elapsedMs)});
+  rows.append({QStringLiteral("消息"),
+               run_result.message.trimmed().isEmpty()
+                   ? QStringLiteral("-")
+                   : run_result.message.trimmed()});
+
+  if (!run_result.outputJson.isEmpty()) {
+    const auto keys = run_result.outputJson.keys();
+    for (const QString &key : keys) {
+      append_result_value_rows(key, run_result.outputJson.value(key), &rows);
+    }
+  } else if (!run_result.rawOutput.trimmed().isEmpty()) {
+    const QByteArray raw_bytes = run_result.rawOutput.trimmed().toUtf8();
+    const QJsonDocument raw_doc = QJsonDocument::fromJson(raw_bytes);
+    if (raw_doc.isObject()) {
+      const auto keys = raw_doc.object().keys();
+      for (const QString &key : keys) {
+        append_result_value_rows(key, raw_doc.object().value(key), &rows);
+      }
+    } else if (raw_doc.isArray()) {
+      append_result_value_rows(QStringLiteral("结果"), QJsonValue(raw_doc.array()),
+                               &rows);
+    } else {
+      rows.append({QStringLiteral("输出"), run_result.rawOutput.trimmed()});
+    }
+  } else {
+    rows.append({QStringLiteral("输出"), QStringLiteral("无输出内容。")});
+  }
+
+  result_table_->clearContents();
+  result_table_->setRowCount(rows.size());
+
+  for (int i = 0; i < rows.size(); ++i) {
+    auto *key_item = new QTableWidgetItem(rows.at(i).first);
+    auto *value_item = new QTableWidgetItem(rows.at(i).second);
+    key_item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    value_item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    key_item->setFlags(key_item->flags() & ~Qt::ItemIsEditable);
+    value_item->setFlags(value_item->flags() & ~Qt::ItemIsEditable);
+    key_item->setToolTip(rows.at(i).first);
+    value_item->setToolTip(rows.at(i).second);
+    result_table_->setItem(i, 0, key_item);
+    result_table_->setItem(i, 1, value_item);
+  }
+
+  result_table_->resizeRowsToContents();
+}
+
+void AlgorithmRunTab::append_result_value_rows(
+    const QString &key, const QJsonValue &value,
+    QList<QPair<QString, QString>> *rows) const {
+  if (!rows) {
+    return;
+  }
+
+  if (value.isObject()) {
+    const QJsonObject object = value.toObject();
+    const auto keys = object.keys();
+    for (const QString &child_key : keys) {
+      append_result_value_rows(key + "." + child_key, object.value(child_key),
+                               rows);
+    }
+    if (keys.isEmpty()) {
+      rows->append({key, QStringLiteral("{}")});
+    }
+    return;
+  }
+
+  if (value.isArray()) {
+    const QJsonArray array = value.toArray();
+    if (array.isEmpty()) {
+      rows->append({key, QStringLiteral("[]")});
+      return;
+    }
+
+    bool all_scalar = true;
+    for (const QJsonValue &item : array) {
+      if (item.isObject() || item.isArray()) {
+        all_scalar = false;
+        break;
+      }
+    }
+
+    if (all_scalar) {
+      QStringList parts;
+      for (const QJsonValue &item : array) {
+        parts.append(result_cell_text(item));
+      }
+      rows->append({key, parts.join(QStringLiteral(", "))});
+      return;
+    }
+
+    for (int i = 0; i < array.size(); ++i) {
+      append_result_value_rows(QStringLiteral("%1[%2]").arg(key).arg(i),
+                               array.at(i), rows);
+    }
+    return;
+  }
+
+  rows->append({key, result_cell_text(value)});
+}
+
+QString AlgorithmRunTab::result_cell_text(const QJsonValue &value) const {
+  if (value.isString()) {
+    return value.toString();
+  }
+  if (value.isBool()) {
+    return value.toBool() ? QStringLiteral("true") : QStringLiteral("false");
+  }
+  if (value.isDouble()) {
+    return QString::number(value.toDouble(), 'g', 12);
+  }
+  if (value.isNull()) {
+    return QStringLiteral("null");
+  }
+  if (value.isUndefined()) {
+    return QStringLiteral("undefined");
+  }
+  return QString::fromUtf8(
+      QJsonDocument(value.toObject()).toJson(QJsonDocument::Compact));
 }
 
 QString AlgorithmRunTab::cache_key(const AlgorithmParam &param) const {

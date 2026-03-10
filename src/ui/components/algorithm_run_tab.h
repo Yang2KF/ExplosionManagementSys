@@ -7,12 +7,13 @@
 #include "service/algorithm_param_service.h"
 #include <QMap>
 #include <QJsonObject>
+#include <QJsonValue>
 #include <QWidget>
 
 class QFormLayout;
 class QLabel;
 class QScrollArea;
-class QTextEdit;
+class QTableWidget;
 
 class AlgorithmRunTab : public QWidget {
   Q_OBJECT
@@ -31,6 +32,10 @@ private:
   bool collect_input_json(QJsonObject *input_json,
                           QString *error_message) const;
   void run_algorithm();
+  void render_result(const AlgorithmRunResult &run_result);
+  void append_result_value_rows(const QString &key, const QJsonValue &value,
+                                QList<QPair<QString, QString>> *rows) const;
+  QString result_cell_text(const QJsonValue &value) const;
 
   QString cache_key(const AlgorithmParam &param) const;
   QString display_name(const AlgorithmParam &param) const;
@@ -49,5 +54,5 @@ private:
   QFormLayout *param_form_layout_ = nullptr;
   MaterialButton *reset_btn_ = nullptr;
   MaterialButton *run_btn_ = nullptr;
-  QTextEdit *result_output_ = nullptr;
+  QTableWidget *result_table_ = nullptr;
 };

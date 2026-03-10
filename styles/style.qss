@@ -270,15 +270,36 @@ QLabel#FunctionParamLabel {
     color: #4A4F55; 
 }
 
-QTextEdit#FunctionRunnerResult {
-    background: #F8FAFC; /* 极浅的蓝灰色，像一个终端界面 */
-    border: none; /* 无边框设计，全靠背景色区分 */
+QTableWidget#FunctionRunnerResultTable {
+    background: #F8FAFC;
+    alternate-background-color: #F1F5F9;
+    border: none;
     border-radius: 8px;
-    padding: 16px;
-    font-size: 12pt;
-    font-family: "Consolas", "Courier New", monospace;
-    color: #334155; /* Slate 色系深灰，阅读代码非常舒适 */
-    line-height: 1.6;
+    color: #334155;
+    gridline-color: transparent;
+    selection-background-color: #F4F8FF;
+    selection-color: ${PRIMARY};
+}
+
+QTableWidget#FunctionRunnerResultTable QHeaderView::section {
+    background: #E9EEF5;
+    color: #526173;
+    border: none;
+    border-bottom: 1px solid #D3DAE6;
+    padding: 10px 12px;
+    font-size: 11pt;
+    font-weight: 600;
+}
+
+QTableWidget#FunctionRunnerResultTable::item {
+    padding: 10px 12px;
+    border-bottom: 1px solid #E7EDF5;
+}
+
+QTableWidget#FunctionRunnerResultTable::item:selected {
+    background: #F4F8FF;
+    color: ${PRIMARY};
+    border-bottom: 1px solid #E7EDF5;
 }
 
 QLineEdit#MaterialEditInput {

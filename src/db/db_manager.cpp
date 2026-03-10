@@ -290,7 +290,7 @@ void DBManager::seed_data() {
 
   const QString blast_risk_py_id =
       add_algo("CAT_AIR", "冲击波风险评估（Python）",
-               "用于展示多参数风险评估的动态参数面板",
+               "结合装药量、距离、地形和室内条件评估冲击波风险等级",
                "calc_blast_risk_py", python_script, "python");
   add_param(blast_risk_py_id, "charge_kg", "装药量", "double", "12.0", true,
             "0.001", "", 1, "kg", "爆源 TNT 当量");
@@ -307,7 +307,7 @@ void DBManager::seed_data() {
 
   const QString fragment_screening_py_id =
       add_algo("CAT_DIST", "破片遮蔽评估（Python）",
-               "用于展示布尔、整数、字符串混合参数的运行页",
+               "结合破片参数与遮蔽材料估算目标受击概率及防护削弱效果",
                "calc_fragment_screening_py", python_script, "python");
   add_param(fragment_screening_py_id, "fragment_mass_kg", "单片质量", "double",
             "0.03", true, "0.0001", "", 1, "kg", "单个破片质量");
@@ -324,7 +324,7 @@ void DBManager::seed_data() {
 
   const QString thermal_response_py_id =
       add_algo("CAT_FIREBALL", "热响应评估（Python）",
-               "用于展示 6 参数热辐射响应模型的动态表单",
+               "根据热流、作用时长、防护系数和掩体条件评估热暴露响应",
                "calc_thermal_response_py", python_script, "python");
   add_param(thermal_response_py_id, "heat_flux_kw_m2", "热流密度", "double",
             "32.0", true, "0.001", "", 1, "kW/m2", "目标表面热流密度");
