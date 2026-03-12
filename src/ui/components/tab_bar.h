@@ -19,6 +19,7 @@ public:
 
   QSize sizeHint() const override;
   bool isClosable() const { return closable_; }
+  void setTitle(const QString &title);
 
 protected:
   void paintEvent(QPaintEvent *event) override;
@@ -51,6 +52,7 @@ public:
   int addTab(const QString &title, const QIcon &normal_icon,
              const QIcon &active_icon = QIcon(), bool closable = false);
   void removeTab(int index);
+  void setTabTitle(int index, const QString &title);
   int currentIndex() const { return current_index_; }
   int count() const { return buttons_.size(); }
   void setCurrentIndex(int index);

@@ -1,4 +1,5 @@
 ﻿#include "main_window.h"
+#include "components/algorithm_edit_tab.h"
 #include "components/algorithm_run_tab.h"
 #include "components/function_page.h"
 #include "components/mask_widget.h"
@@ -83,6 +84,8 @@ void MainWindow::setup_content() {
   function_page_ = new FunctionPage(this);
   connect(function_page_, &FunctionPage::requestRunTab, this,
           &MainWindow::open_run_tab);
+  connect(function_page_, &FunctionPage::requestEditTab, this,
+          &MainWindow::open_edit_tab);
 
   pages_stack_->addWidget(function_page_);
   content_layout_->addWidget(pages_stack_, 1);
@@ -138,11 +141,19 @@ void MainWindow::onTabCloseRequested(int id) {
   if (!removed_key.isEmpty()) {
     run_tab_indexes_.remove(removed_key);
   }
-  for (auto it = run_tab_indexes_.begin(); it != run_tab_indexes_.end(); ++it) {
-    if (it.value() > id) {
-      it.value() = it.value() - 1;
+  adjust_tab_indexes_after_remove(&run_tab_indexes_, id);
+
+  QString removed_edit_key;
+  for (auto it = edit_tab_indexes_.begin(); it != edit_tab_indexes_.end(); ++it) {
+    if (it.value() == id) {
+      removed_edit_key = it.key();
+      break;
     }
   }
+  if (!removed_edit_key.isEmpty()) {
+    edit_tab_indexes_.remove(removed_edit_key);
+  }
+  adjust_tab_indexes_after_remove(&edit_tab_indexes_, id);
 
   int target_index = current_page_index_;
   if (current_page_index_ == id) {
@@ -185,6 +196,52 @@ void MainWindow::open_run_tab(const AlgorithmInfo &info) {
   onTabRequested(index);
 }
 
+void MainWindow::open_edit_tab(const AlgorithmInfo &info) {
+  if (!tab_bar_ || !pages_stack_) {
+    return;
+  }
+
+  const QString key = edit_tab_key(info);
+  int index = -1;
+  if (edit_tab_indexes_.contains(key)) {
+    index = edit_tab_indexes_.value(key);
+  } else {
+    auto *edit_tab = new AlgorithmEditTab(info, pages_stack_);
+    index = pages_stack_->addWidget(edit_tab);
+    tab_bar_->addTab(edit_tab->tabTitle(), UISystem::instance().function_icon(),
+                     UISystem::instance().function_icon_checked(), true);
+    edit_tab_indexes_.insert(key, index);
+
+    connect(edit_tab, &AlgorithmEditTab::saved, this,
+            &MainWindow::on_edit_tab_saved);
+  }
+
+  onTabRequested(index);
+}
+
+void MainWindow::on_edit_tab_saved(const QString &old_key, const QString &new_key,
+                                   const QString &title) {
+  auto *edit_tab = qobject_cast<AlgorithmEditTab *>(sender());
+  if (!edit_tab) {
+    return;
+  }
+
+  const int index = page_index(edit_tab);
+  if (index < 0) {
+    return;
+  }
+
+  if (!old_key.isEmpty()) {
+    edit_tab_indexes_.remove(old_key);
+  }
+  edit_tab_indexes_.insert(new_key, index);
+  tab_bar_->setTabTitle(index, title);
+
+  if (function_page_) {
+    function_page_->reload_data();
+  }
+}
+
 QString MainWindow::run_tab_key(const AlgorithmInfo &info) const {
   if (!info.id.trimmed().isEmpty()) {
     return info.id.trimmed();
@@ -202,4 +259,27 @@ QString MainWindow::run_tab_title(const AlgorithmInfo &info) const {
     name = name.left(16) + "...";
   }
   return QStringLiteral("运行: ") + name;
+}
+
+QString MainWindow::edit_tab_key(const AlgorithmInfo &info) const {
+  if (!info.id.trimmed().isEmpty()) {
+    return QStringLiteral("edit_algo_%1").arg(info.id.trimmed());
+  }
+  return QStringLiteral("new_algo_tab");
+}
+
+int MainWindow::page_index(QWidget *page) const {
+  return (pages_stack_ && page) ? pages_stack_->indexOf(page) : -1;
+}
+
+void MainWindow::adjust_tab_indexes_after_remove(QHash<QString, int> *indexes,
+                                                 int removed) {
+  if (!indexes) {
+    return;
+  }
+  for (auto it = indexes->begin(); it != indexes->end(); ++it) {
+    if (it.value() > removed) {
+      it.value() = it.value() - 1;
+    }
+  }
 }

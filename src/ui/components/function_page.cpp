@@ -1,5 +1,4 @@
 #include "function_page.h"
-#include "algo_edit_dialog.h"
 #include "m_message_box.h"
 #include "ui_system.h"
 #include <QFrame>
@@ -129,9 +128,7 @@ void FunctionPage::init_connections() {
           });
 
   connect(refresh_btn_, &QPushButton::clicked, this, [this]() {
-    tree_model_->reload();
-    table_model_->load_data(current_category_id(category_tree_));
-    category_tree_->expandAll();
+    reload_data();
   });
 
   connect(search_input_, &QLineEdit::returnPressed, this, [this]() {
@@ -144,21 +141,9 @@ void FunctionPage::init_connections() {
   });
 
   connect(add_btn_, &QPushButton::clicked, this, [this]() {
-    AlgoEditDialog dlg(this);
-    if (dlg.exec() != QDialog::Accepted) {
-      return;
-    }
-
-    const AlgorithmInfo info = dlg.get_data();
-    QString error_message;
-    if (algorithm_service_.create_algorithm(info, &error_message)) {
-      table_model_->load_data(current_category_id(category_tree_));
-      MaterialMessageBox::information(this, QStringLiteral("成功"),
-                                      QStringLiteral("算法已新增。"));
-    } else {
-      MaterialMessageBox::error(this, QStringLiteral("失败"),
-                                QStringLiteral("数据库错误：") + error_message);
-    }
+    AlgorithmInfo info;
+    info.categoryId = current_category_id(category_tree_);
+    emit requestEditTab(info);
   });
 
   connect(algo_table_, &QTableView::doubleClicked, this,
@@ -171,6 +156,23 @@ void FunctionPage::init_connections() {
 
   connect(algo_table_, &QWidget::customContextMenuRequested, this,
           [this](const QPoint &pos) { show_table_context_menu(pos); });
+}
+
+void FunctionPage::reload_data() {
+  if (tree_model_) {
+    tree_model_->reload();
+  }
+  if (category_tree_) {
+    category_tree_->expandAll();
+  }
+  reload_table();
+}
+
+void FunctionPage::reload_table() {
+  if (!table_model_) {
+    return;
+  }
+  table_model_->load_data(current_category_id(category_tree_));
 }
 
 void FunctionPage::show_table_context_menu(const QPoint &pos) {
@@ -243,21 +245,7 @@ void FunctionPage::edit_algorithm_by_row(int row) {
   }
 
   const AlgorithmInfo info = table_model_->get_item(row);
-  AlgoEditDialog dlg(this);
-  dlg.set_data(info);
-  if (dlg.exec() != QDialog::Accepted) {
-    return;
-  }
-
-  AlgorithmInfo new_info = dlg.get_data();
-  new_info.id = info.id;
-  QString error_message;
-  if (algorithm_service_.update_algorithm(new_info, &error_message)) {
-    table_model_->load_data(current_category_id(category_tree_));
-  } else {
-    MaterialMessageBox::error(this, QStringLiteral("失败"),
-                              QStringLiteral("更新失败：") + error_message);
-  }
+  emit requestEditTab(info);
 }
 
 void FunctionPage::delete_algorithm_by_row(int row) {
@@ -281,7 +269,7 @@ void FunctionPage::delete_algorithm_by_row(int row) {
 
   QString error_message;
   if (algorithm_service_.delete_algorithm(info.id, &error_message)) {
-    table_model_->load_data(current_category_id(category_tree_));
+    reload_table();
   } else {
     MaterialMessageBox::error(this, QStringLiteral("失败"),
                               QStringLiteral("删除失败：") + error_message);

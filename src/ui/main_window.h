@@ -20,6 +20,9 @@ private slots:
   void onTabRequested(int id);
   void onTabCloseRequested(int id);
   void open_run_tab(const AlgorithmInfo &info);
+  void open_edit_tab(const AlgorithmInfo &info);
+  void on_edit_tab_saved(const QString &old_key, const QString &new_key,
+                         const QString &title);
 
 private:
   void init_ui();
@@ -29,6 +32,9 @@ private:
 
   QString run_tab_key(const AlgorithmInfo &info) const;
   QString run_tab_title(const AlgorithmInfo &info) const;
+  QString edit_tab_key(const AlgorithmInfo &info) const;
+  int page_index(QWidget *page) const;
+  void adjust_tab_indexes_after_remove(QHash<QString, int> *indexes, int removed);
 
   QVBoxLayout *main_layout_ = nullptr;
   QVBoxLayout *content_layout_ = nullptr;
@@ -38,5 +44,6 @@ private:
 
   FunctionPage *function_page_ = nullptr;
   QHash<QString, int> run_tab_indexes_;
+  QHash<QString, int> edit_tab_indexes_;
   int current_page_index_ = 0;
 };

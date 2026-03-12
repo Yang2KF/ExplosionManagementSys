@@ -186,6 +186,14 @@ QString TabButton::elided_title(int width) const {
   return metrics.elidedText(title_, Qt::ElideRight, qMax(10, width));
 }
 
+void TabButton::setTitle(const QString &title) {
+  if (title_ == title) {
+    return;
+  }
+  title_ = title;
+  update();
+}
+
 TabBar::TabBar(QWidget *parent) : QWidget(parent) {
   setAttribute(Qt::WA_StyledBackground, true);
   setObjectName("TabBar");
@@ -252,6 +260,13 @@ void TabBar::removeTab(int index) {
     --current_index_;
   }
   setCurrentIndex(current_index_);
+}
+
+void TabBar::setTabTitle(int index, const QString &title) {
+  if (index < 0 || index >= buttons_.size()) {
+    return;
+  }
+  buttons_[index]->setTitle(title);
 }
 
 void TabBar::setCurrentIndex(int index) {

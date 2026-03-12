@@ -20,6 +20,10 @@ public:
 
 signals:
   void requestRunTab(const AlgorithmInfo &info);
+  void requestEditTab(const AlgorithmInfo &info);
+
+public slots:
+  void reload_data();
 
 private:
   void init_ui();
@@ -27,6 +31,7 @@ private:
   void setup_views();
   void init_connections();
   void show_table_context_menu(const QPoint &pos);
+  void reload_table();
   void run_algorithm_by_row(int row);
   void edit_algorithm_by_row(int row);
   void delete_algorithm_by_row(int row);

@@ -341,3 +341,90 @@ QLabel {
     color: ${TEXT_PRIMARY};
 }
 
+#AlgorithmEditTab {
+    background: transparent;
+}
+
+#AlgorithmEditTab QGroupBox {
+    background: #FFFFFF;
+    border: 1px solid #E6EAF0;
+    border-radius: 10px;
+    margin-top: 8px;
+    font-weight: 600;
+    color: #526173;
+}
+
+#AlgorithmEditTab QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 14px;
+    padding: 0 6px;
+}
+
+QComboBox#AlgorithmEditCombo {
+    border: 1px solid #D6DCE6;
+    border-radius: 8px;
+    padding: 6px 12px;
+    background: #F8FAFC;
+    color: ${TEXT_PRIMARY};
+}
+
+QComboBox#AlgorithmEditCombo:hover {
+    border-color: #C4CBD7;
+    background: #FFFFFF;
+}
+
+QComboBox#AlgorithmEditCombo::drop-down {
+    border: none;
+    width: 24px;
+}
+
+QComboBox#AlgorithmEditCombo::down-arrow {
+    image: url(:/icons/arrow_down_line);
+    width: 14px;
+    height: 14px;
+}
+
+QWidget#AlgorithmEditSection {
+    background: #F8FAFC;
+    border: 1px solid #E6EAF0;
+    border-radius: 10px;
+}
+
+QLabel#AlgorithmEditSectionTitle {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #445266;
+}
+
+QTableWidget#AlgorithmEditParamTable {
+    background: #FFFFFF;
+    alternate-background-color: #FAFBFC;
+    border: 1px solid #E6EAF0;
+    border-radius: 8px;
+    color: ${TEXT_PRIMARY};
+    gridline-color: transparent;
+    selection-background-color: #F4F8FF;
+    selection-color: ${PRIMARY};
+}
+
+QTableWidget#AlgorithmEditParamTable QHeaderView::section {
+    background: #E9EEF5;
+    color: #526173;
+    border: none;
+    border-bottom: 1px solid #D3DAE6;
+    padding: 10px 12px;
+    font-size: 10.5pt;
+    font-weight: 600;
+}
+
+QTableWidget#AlgorithmEditParamTable::item {
+    padding: 8px 12px;
+    border-bottom: 1px solid #E7EDF5;
+}
+
+QTableWidget#AlgorithmEditParamTable::item:selected {
+    background: #F4F8FF;
+    color: ${PRIMARY};
+    border-bottom: 1px solid #E7EDF5;
+}
+
